@@ -1,0 +1,2552 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MT4ServerAPI</name>
+    </assembly>
+    <members>
+        <member name="T:TradingAPI.MT4Server.Bar">
+            <summary>
+            Quote history bar.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Bar.Time">
+            <summary>
+            Bar open time.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Bar.Open">
+            <summary>
+            Open price.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Bar.High">
+            <summary>
+            Maximum price.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Bar.Low">
+            <summary>
+            Minimum price.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Bar.Close">
+            <summary>
+            Close price.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Bar.Volume">
+            <summary>
+            Volume.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Bar.ToString">
+            <summary>
+            Convert to string
+            </summary>
+            <returns>"Time Open High Low Close"</returns>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConnectEventArgs">
+            <summary>
+            Connect event argumnets.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConnectEventArgs.Exception">
+            <summary>
+            Connect exception. Can be null.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.DisconnectEventArgs">
+            <summary>
+            Disconnect event arguments.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.DisconnectEventArgs.Exception">
+            <summary>
+            Disconnect exception. Can be null.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.MarginMode">
+            <summary>
+            Margin types.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MarginMode.Forex">
+            <summary>
+            Forex.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MarginMode.CFD">
+            <summary>
+            CFD.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MarginMode.Futures">
+            <summary>
+            Futures.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MarginMode.CfdIndex">
+            <summary>
+            CFD Index.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MarginMode.CfdLeverage">
+            <summary>
+            CFD Leverage.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ProfitMode">
+            <summary>
+            Profit types.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProfitMode.Forex">
+            <summary>
+            Forex.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProfitMode.CFD">
+            <summary>
+            CFD.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProfitMode.Futures">
+            <summary>
+            Futures
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.RequoteException">
+            <summary>
+            Requote exception.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.RequoteException.Bid">
+            <summary>
+            New server bid price.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.RequoteException.Ask">
+            <summary>
+            New server ask price.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.RequoteException.#ctor(System.Int32,System.Double,System.Double)">
+            <summary>
+            Initialize RequoteException.
+            </summary>
+            <param name="code">Exception code.</param>
+            <param name="bid">Bid price.</param>
+            <param name="ask">Ask price.</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.TimeoutException">
+            <summary>
+            Trade timeout exception.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.TimeoutException.#ctor(System.String)">
+            <summary>
+            Initialize TradeTimeoutException.
+            </summary>
+            <param name="message">Exception message.</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConGroup">
+            <summary>
+            Client group configuration.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.group">
+            <summary>
+            group name
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.enable">
+            <summary>
+            enable group
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.timeout">
+            <summary>
+            trade confirmation timeout (seconds)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.adv_security">
+            <summary>
+            enable advanced security
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.company">
+            <summary>
+            company name
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.signature">
+            <summary>
+            statements signature
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.smtp_server">
+            <summary>
+            statements SMTP server
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.smtp_login">
+            <summary>
+            statements SMTP login
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.smtp_password">
+            <summary>
+            statements SMTP password
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.support_email">
+            <summary>
+            support email
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.templates">
+            <summary>
+            path to directory with custom templates
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.copies">
+            <summary>
+            copy statements on support email
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.reports">
+            <summary>
+            enable statements
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.default_leverage">
+            <summary>
+            default leverage (user don't specify leverage himself)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.default_deposit">
+            <summary>
+            default deposit  (user don't specify balance  himself)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.maxsecurities">
+            <summary>
+            maximum simultaneous securities
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.secgroups">
+            <summary>
+            security group settings
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.secmargins">
+            <summary>
+            special securities settings
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.secmargins_total">
+            <summary>
+            count of special securities settings
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.currency">
+            <summary>
+            deposit currency
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.credit">
+            <summary>
+            virtual credit
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.margin_call">
+            <summary>
+            margin call level (percents)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.margin_mode">
+            <summary>
+            margin mode-MARGIN_DONT_USE,MARGIN_USE_ALL,MARGIN_USE_PROFIT,MARGIN_USE_LOSS
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.margin_stopout">
+            <summary>
+            stop out level
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.interestrate">
+            <summary>
+            annual interest rate (percents)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.use_swap">
+            <summary>
+            use rollovers and interestrate
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.news">
+            <summary>
+            news mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.rights">
+            <summary>
+            rights bit mask-ALLOW_FLAG_EMAIL
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.check_ie_prices">
+            <summary>
+            check by stream prices on IE
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.maxpositions">
+            <summary>
+            open positions limit (0 - unlimited)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.close_reopen">
+            <summary>
+            partial close mode (if !=0 original position will be fully closed and remain position will be fully reopened)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.hedge_prohibited">
+            <summary>
+            hedge prohibition flag
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.close_fifo">
+            <summary>
+            fifo rule
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.unused_rights">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.securities_hash">
+            <summary>
+            internal data
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.margin_type">
+            <summary>
+            stop out calculation mode { MARGIN_TYPE_PERCENT,  MARGIN_TYPE_CURRENCY }
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.archive_period">
+            <summary>
+            archive period
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.archive_max_balance">
+            <summary>
+            archive max balance
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.stopout_skip_hedged">
+            <summary>
+            stopout mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.archive_pending_period">
+            <summary>
+            pendings clean period
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroup.reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConGroupSec">
+            <summary>
+            Security group configuration for  client group
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.show">
+            <summary>
+            enable show and trade for this group of securites
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.trade">
+            <summary>
+            enable show and trade for this group of securites
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.execution">
+            <summary>
+            dealing mode-EXECUTION_MANUAL,EXECUTION_AUTO,EXECUTION_ACTIVITY
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_base">
+            <summary>
+            standart commission
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_type">
+            <summary>
+            commission type-COMM_TYPE_MONEY,COMM_TYPE_PIPS,COMM_TYPE_PERCENT
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_lots">
+            <summary>
+            commission lots mode-COMMISSION_PER_LOT,COMMISSION_PER_DEAL
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_agent">
+            <summary>
+            agent commission
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_agent_type">
+            <summary>
+            agent commission mode-COMM_TYPE_MONEY, COMM_TYPE_PIPS
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.spread_diff">
+            <summary>
+            spread difference in compare with default security spread
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.lot_min">
+            <summary>
+            allowed minimal and maximal lot values
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.lot_max">
+            <summary>
+            allowed minimal and maximal lot values
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.lot_step">
+            <summary>
+            allowed step value (10 lot-1000, 1 lot-100, 0.1 lot-10)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.ie_deviation">
+            <summary>
+            maximum price deviation in Instant Execution mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.confirmation">
+            <summary>
+            use confirmation in Request mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.trade_rights">
+            <summary>
+            clients trade rights-bit mask see TRADE_DENY_NONE,TRADE_DENY_CLOSEBY,TRADE_DENY_MUCLOSEBY
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.ie_quick_mode">
+            <summary>
+            ie quick mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.autocloseout_mode">
+            <summary>
+            auto close-out modes see CLOSE_OUT_NONE,CLOSE_OUT_HIHI, CLOSE_OUT_LOLO, CLOSE_OUT_HILO, CLOSE_OUT_LOHI,CLOSE_OUT_LOHI,CLOSE_OUT_FIFO,CLOSE_OUT_LIFO,CLOSE_OUT_INTRDAY_FIFO
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_tax">
+            <summary>
+            commission taxes
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.comm_agent_lots">
+            <summary>
+            agent commission lots mode-COMMISSION_PER_LOT,COMMISSION_PER_DEAL
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.freemargin_mode">
+            <summary>
+            free margin check mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupSec.reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConGroupMargin">
+            <summary>
+            Special securities configurations
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupMargin.symbol">
+            <summary>
+            security
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupMargin.swap_long">
+            <summary>
+            tickvalue for bid and ask
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupMargin.swap_short">
+            <summary>
+            tickvalue for bid and ask
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupMargin.margin_divider">
+            <summary>
+            margin divider
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConGroupMargin.reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConSymbolGroup">
+            <summary>
+            Symbol groups 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSymbolGroup.name">
+            <summary>
+            group name
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSymbolGroup.description">
+            <summary>
+            group description
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.DemoAccount">
+            <summary>
+            Demo account user and passwords.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.DemoAccount.User">
+            <summary>
+            Account number.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.DemoAccount.Password">
+            <summary>
+            Password.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.DemoAccount.Investor">
+            <summary>
+            Investor password.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.DemoAccount.ToString">
+            <summary>
+            Convert to string
+            </summary>
+            <returns>"User Password Investor"</returns>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Execution">
+            <summary>
+            Execution type.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Execution.Request">
+            <summary>
+            Execution by request.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Execution.Instant">
+            <summary>
+            Instant execution.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Execution.Market">
+            <summary>
+            Market execition. 
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.TradeContextBusyException">
+            <summary>
+            All order connections busy or desconnected.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.TradeContextBusyException.#ctor">
+            <summary>
+            Initialize TradeContextBusyException.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ServerException">
+            <summary>
+            Error reply from server on login and order opening/closing/modifying.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ServerException.Code">
+            <summary>
+            Error code.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.ServerException.#ctor(System.Int32)">
+            <summary>
+            Initialize ServerException.
+            </summary>
+            <param name="code">Exception code.</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.TradeRecord">
+            <summary>
+            Trade record   
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.order">
+            <summary>
+            order ticket
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.login">
+            <summary>
+            owner's login
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.symbol">
+            <summary>
+            security
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.digits">
+            <summary>
+            security precision
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.cmd">
+            <summary>
+            trade command
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.volume">
+            <summary>
+            volume
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.open_time">
+            <summary>
+            open time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.state">
+            <summary>
+            trade record state
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.open_price">
+            <summary>
+            open price
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.sl">
+            <summary>
+            stop loss
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.tp">
+            <summary>
+            take profit
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.close_time">
+            <summary>
+            close time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.value_date">
+            <summary>
+            value date
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.expiration">
+            <summary>
+            pending order's expiration time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.conv_reserv">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.conv_rates">
+            <summary>
+            convertation rates from profit currency to group deposit currency. first element - for open time, second element - for close time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.commission">
+            <summary>
+            commission
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.commission_agent">
+            <summary>
+            agent commission
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.storage">
+            <summary>
+            order swaps
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.close_price">
+            <summary>
+            close price
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.profit">
+            <summary>
+            profit
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.taxes">
+            <summary>
+            taxes value
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.magic">
+            <summary>
+            special value used by client experts
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.comment">
+            <summary>
+            comment
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.internal_id">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.activation">
+            <summary>
+            used by MT Manager
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.spread">
+            <summary>
+            used by MT Manager
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.margin_rate">
+            <summary>
+            margin convertation rate (rate of convertation from margin currency to deposit one)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.timestamp">
+            <summary>
+            timestamp
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.TradeRecord.next">
+            <summary>
+            internal
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.SymbolInfoEx">
+            <summary>
+            Security config 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.symbol">
+            <summary>
+            name
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.description">
+            <summary>
+            description
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.source">
+            <summary>
+            synonym
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.currency">
+            <summary>
+            currency
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.type">
+            <summary>
+            security group (see ConSymbolGroup)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.digits">
+            <summary>
+            security precision
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.trade">
+            <summary>
+            trade mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.background_color">
+            <summary>
+            background color
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.count">
+            <summary>
+            symbols index
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.count_original">
+            <summary>
+            symbols index in market watch
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.external_unused">
+            <summary>
+            internal
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.realtime">
+            <summary>
+            allow real time quotes
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.starting">
+            <summary>
+            trades starting date (UNIX time)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.expiration">
+            <summary>
+            trades end date      (UNIX time)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.sessions">
+            <summary>
+            quote and trade sessions
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.profit_mode">
+            <summary>
+            profit calculation mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.profit_reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.filter">
+            <summary>
+            filter value
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.filter_counter">
+            <summary>
+            filtration parameter
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.filter_limit">
+            <summary>
+            max. permissible deviation from last quote (percents)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.filter_smoothing">
+            <summary>
+            smoothing
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.filter_reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.logging">
+            <summary>
+            enable to log quotes
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.spread">
+            <summary>
+            spread
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.spread_balance">
+            <summary>
+            spread balance
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.exemode">
+            <summary>
+            execution mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.swap_enable">
+            <summary>
+            enable swaps
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.swap_type">
+            <summary>
+            swap type
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.swap_long">
+            <summary>
+            swaps values for long and short postions
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.swap_short">
+            <summary>
+            swaps values for long and short postions
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.swap_rollover3days">
+            <summary>
+            triple rollover day: 0-Monday, 1-Tuesday ... 4-Friday
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.contract_size">
+            <summary>
+            contract size
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.tick_value">
+            <summary>
+            one tick value
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.tick_size">
+            <summary>
+            one tick size
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.stops_level">
+            <summary>
+            stops deviation value
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.gtc_pendings">
+            <summary>
+            GTC mode ORDERS_DAILY, ORDERS_GTC, ORDERS_DAILY_NO_STOPS
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_mode">
+            <summary>
+            margin calculation mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_initial">
+            <summary>
+            initial margin
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_maintenance">
+            <summary>
+            margin maintenance
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_hedged">
+            <summary>
+            hadget margin
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_divider">
+            <summary>
+            margin divider
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.point">
+            <summary>
+            point size - (1/(10^digits)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.multiply">
+            <summary>
+            multiply 10^digits
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.bid_tickvalue">
+            <summary>
+            tickvalue for bid
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.ask_tickvalue">
+            <summary>
+            tickvalue for ask
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.long_only">
+            <summary>
+            allow only BUY positions
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.instant_max_volume">
+            <summary>
+            max. volume for Instant Execution
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_currency">
+            <summary>
+            currency of margin requirments
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.freeze_level">
+            <summary>
+            modification freeze level (from market price)
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.margin_hedged_strong">
+            <summary>
+            lock open checking mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.value_date">
+            <summary>
+            value date for this security
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.quotes_delay">
+            <summary>
+            quotes delay
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.swap_openprice">
+            <summary>
+            use open price at swaps calculation in SWAP_BY_INTEREST mode
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfoEx.unused">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConSession">
+            <summary>
+            Security sessions configurations
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.open_hour">
+            <summary>
+            session open time: hour and minute
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.open_min">
+            <summary>
+            session open time: hour and minute
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.close_hour">
+            <summary>
+            session close time: hour and minute
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.close_min">
+            <summary>
+            session close time: hour and minute
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.open">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.close">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSession.align">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConSessions">
+            <summary>
+            Sessions.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSessions.quote">
+            <summary>
+            quote sessions
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSessions.trade">
+            <summary>
+            trade sessions
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSessions.quote_overnight">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSessions.trade_overnight">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ConSessions.reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Logger">
+            <summary>
+            Log output. 
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Logger.OnMsgHandler">
+            <summary>
+            New message event handler.
+            </summary>
+            <param name="sender">Object that sent message</param>
+            <param name="msg">Message</param>
+            <param name="type">Message type</param>
+        </member>
+        <member name="E:TradingAPI.MT4Server.Logger.OnMsg">
+            <summary>
+            New message event.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.DebugInfo">
+            <summary>
+            Enable output debug info in the exception messages.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.#ctor(System.Object)">
+            <summary>
+            Initialize new Logger.
+            </summary>
+            <param name="parent">Parent object</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.trace(System.String)">
+            <summary>
+            Trace message.
+            </summary>
+            <param name="msg">Message</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.debug(System.String)">
+            <summary>
+            Debug message.
+            </summary>
+            <param name="msg">Message</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.info(System.String)">
+            <summary>
+            Information message.
+            </summary>
+            <param name="msg">Message</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.warn(System.String)">
+            <summary>
+            Warning message.
+            </summary>
+            <param name="msg">Message</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.error(System.String)">
+            <summary>
+            Error message.
+            </summary>
+            <param name="msg">Message</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Logger.exception(System.Exception)">
+            <summary>
+            Exception message.
+            </summary>
+            <param name="ex">Exception</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Logger.MsgType">
+            <summary>
+            Message type.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.MsgType.Trace">
+            <summary>
+            Trace.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.MsgType.Debug">
+            <summary>
+            Debug.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.MsgType.Info">
+            <summary>
+            Information.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.MsgType.Warn">
+            <summary>
+            Warning.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.MsgType.Error">
+            <summary>
+            Error.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Logger.MsgType.Exception">
+            <summary>
+            Exception.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Op">
+            <summary>
+            Operation type for the OrderSend() function.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.Buy">
+            <summary>
+             Buying position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.Sell">
+            <summary>
+            Selling position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.BuyLimit">
+            <summary>
+            Buy limit pending position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.SellLimit">
+            <summary>
+            Sell limit pending position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.BuyStop">
+            <summary>
+            Buy stop pending position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.SellStop">
+            <summary>
+            Sell stop pending position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.Balance">
+            <summary>
+            Balance position. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Op.Credit">
+            <summary>
+            Credit position. 
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Order">
+            <summary>
+            Contains order data.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Ticket">
+            <summary>
+            Ticket number.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.OpenTime">
+            <summary>
+            Open time.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.CloseTime">
+            <summary>
+            Close time. Just for history orders.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Expiration">
+            <summary>
+            Expiration time of pending order.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Type">
+            <summary>
+            Order type.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Lots">
+            <summary>
+            Amount of lots. Be carefull some brokers use non standart lots.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Symbol">
+            <summary>
+            Trading instrument.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.OpenPrice">
+            <summary>
+            Open price.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.StopLoss">
+            <summary>
+            Stop loss.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.TakeProfit">
+            <summary>
+            Take profit.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.ClosePrice">
+            <summary>
+            Close price. Just for history orders.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.MagicNumber">
+            <summary>
+            Identifying (magic) number.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Swap">
+            <summary>
+            Swap value.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Commission">
+            <summary>
+            Commission value.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Comment">
+            <summary>
+            Order comment.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Profit">
+            <summary>
+            Net profit value (without swaps or commissions) in base currency.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.Order.ToString">
+            <summary>
+            Convert to string
+            </summary>
+            <returns>"Ticket Symbol Type"</returns>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.RateOpen">
+            <summary>
+            Convertation rate from profit currency to group deposit currency for open time.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.RateClose">
+            <summary>
+            Convertation rate from profit currency to group deposit currency for close time.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.RateMargin">
+            <summary>
+            Rate of convertation from margin currency to deposit one.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Order.Ex">
+            <summary>
+            Extended order information.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.OrderProgressEventArgs">
+            <summary>
+            Order progress event arguments.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderProgressEventArgs.TempID">
+            <summary>
+            Temporary ID. Useful until server assign ticket number.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderProgressEventArgs.Type">
+            <summary>
+            Stage of order processing by server.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderProgressEventArgs.Order">
+            <summary>
+            Opened/closed order.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderProgressEventArgs.Exception">
+            <summary>
+            Exception during processing of the order. Could be ServerException or RequoteException.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderProgressEventArgs.ToString">
+            <summary>
+            Converts to string.
+            </summary>
+            <returns>"TempID Type Exception"</returns>
+        </member>
+        <member name="T:TradingAPI.MT4Server.OrderUpdateEventArgs">
+            <summary>
+            Arguments for OrderUpdate event.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderUpdateEventArgs.Order">
+            <summary>
+            Updated order.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderUpdateEventArgs.Action">
+            <summary>
+            Update action.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ProgressType">
+            <summary>
+            Stage of order processing by server.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Rejected">
+            <summary>
+            Order was rejected.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Accepted">
+            <summary>
+            Order was accepted by server.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.InProcess">
+            <summary>
+            Server started to execute the order.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Opened">
+            <summary>
+            Order was opened.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Closed">
+            <summary>
+            Order was closed.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Modified">
+            <summary>
+            Order was modified.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.PendingDeleted">
+            <summary>
+            Pending order was deleted.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.ClosedBy">
+            <summary>
+            Closed of pair of opposite orders.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.MultipleClosedBy">
+            <summary>
+            Closed of multiple orders.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Timeout">
+            <summary>
+            Trade timeout.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Price">
+            <summary>
+            Price data.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConvertBytes">
+            <summary>
+            Convert byte array to strings.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.ConvertBytes.toHex(System.Byte[])">
+            <summary>
+            Convert to HEX string.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.ConvertBytes.toAscii(System.Byte[])">
+            <summary>
+            Convert to ASCII string.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.vUTF">
+            <summary>
+            Convert string to byte array.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.vUTF.toByte(System.String)">
+            <summary>
+            Convert UNICODE string to byte array.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.vUTF.toString(System.Byte[],System.Int32)">
+            <summary>
+            Convert byte array to UNICODE string.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.OrderUpdateEventHandler">
+            <summary>
+            Order update event handler.
+            </summary>
+            <param name="sender">Object that sent event</param>
+            <param name="update">Event arguments</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.QuoteEventHandler">
+            <summary>
+            Quote event handler.
+            </summary>
+            <param name="sender">Object that sent event</param>
+            <param name="args">Event arguments</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.QuoteHistoryEventHandler">
+            <summary>
+            Quote history event handler;
+            </summary>
+            <param name="sender">Object that sent event</param>
+            <param name="args">Event arguments</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.DisconnectEventHandler">
+            <summary>
+            Disconnect event handler.
+            </summary>
+            <param name="sender">Object that sent event</param>
+            <param name="args">Event arguments</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ConnectEventHandler">
+            <summary>
+            Connect event handler.
+            </summary>
+            <param name="sender">Object that sent event</param>
+            <param name="args">Event arguments</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.QuoteClient">
+            <summary>
+            Quote retrieving, account information, order updates.
+            </summary>
+        </member>
+        <member name="E:TradingAPI.MT4Server.QuoteClient.OnQuote">
+            <summary>
+            Quote event.
+            </summary>
+        </member>
+        <member name="E:TradingAPI.MT4Server.QuoteClient.OnOrderUpdate">
+            <summary>
+            Order status changed event.
+            </summary>
+        </member>
+        <member name="E:TradingAPI.MT4Server.QuoteClient.OnQuoteHistory">
+            <summary>
+            Quote history event. Use DownloadQuoteHistory to request history. 
+            </summary>
+        </member>
+        <member name="E:TradingAPI.MT4Server.QuoteClient.OnDisconnect">
+            <summary>
+            Disconnect event.
+            </summary>
+        </member>
+        <member name="E:TradingAPI.MT4Server.QuoteClient.OnConnect">
+            <summary>
+            Connect event.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.User">
+            <summary>
+            Account number.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.SleepTime">
+            <summary>
+            Sleep time for MainThread of QuoteClient.
+            Can be from 1 to 20 ms. Default value - 5 ms.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteClient.CalculateTradeProps">
+            <summary>
+            Flag, allowing to calculate the parameters of trade:
+            AccountProfit, AccountEquity, AccountMargin, AccountFreeMargin.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountBalance">
+            <summary>
+            Account balance.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountCredit">
+            <summary>
+            Account credit.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountProfit">
+            <summary>
+            Account profit.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountEquity">
+            <summary>
+            Account equity.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountMargin">
+            <summary>
+            Account margin.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountFreeMargin">
+            <summary>
+            Account free margin.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountName">
+            <summary>
+            Currency name of the current account.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountLeverage">
+            <summary>
+            Account leverage.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.Account">
+            <summary>
+            Various account information.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.Groups">
+            <summary>
+            Symbol groups.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.ServerTime">
+            <summary>
+            Server time, refreshing goes with using incoming quotes. 
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.ServerBuild">
+            <summary>
+            Server build. 
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.IsDemoAccount">
+            <summary>
+            Demo account flag.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.AccountMode">
+            <summary>
+            Account mode. 0 - master, 1 - investor
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteClient.PathForSavingSrv">
+            <summary>
+            Path for saving .srv files. If null - don't save.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteClient.PathForSavingSym">
+            <summary>
+            Path for saving .sym files. If null - save in current folder.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor">
+            <summary>
+            Initialize quote client. For using with COM. Call Init() after constructor.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Init(System.Int32,System.String,System.String,System.Int32)">
+            <summary>
+            Initialize quote client. For using with COM.
+            </summary>
+            <param name="user">Account number.</param>
+            <param name="password">Password.</param>
+            <param name="host">IP address or domain name.</param>
+            <param name="port">Port. Usually 443.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Init(System.Int32,System.String,System.String)">
+            <summary>
+            Initialize quote client. For using with COM.
+            </summary>
+            <param name="user">Account number.</param>
+            <param name="password">Password.</param>
+            <param name="serverFilePath">Path to srv file. You can find srv files in MT4\config folder.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.Int32,System.String,System.String,System.Int32)">
+            <summary>
+            Initialize quote client.
+            </summary>
+            <param name="user">Account number.</param>
+            <param name="password">Password.</param>
+            <param name="host">IP address or domain name.</param>
+            <param name="port">Port. Usually 443.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.Int32,System.String,System.String,System.Int32,System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Initialize quote client via proxy.
+            </summary>
+            <param name="user">Account number.</param>
+            <param name="password">Password.</param>
+            <param name="host">IP address or domain name.</param>
+            <param name="port">Port. Usually 443.</param>
+            <param name="proxyHost">IP address of proxy server.</param>
+            <param name="proxyPort">Port of proxy server.</param>
+            <param name="proxyUser">Account of proxy server.</param>
+            <param name="proxyPass">Password of proxy server.</param>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.ClosedOrders">
+            <summary>
+            Array of closed orders.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.UInt32,System.String,System.String,System.Int32,System.DateTime,System.DateTime)">
+            <summary>
+            Initialize quote client to give history of closed orders.
+            </summary>
+            <param name="user">Account number.</param>
+            <param name="password">Password.</param>
+            <param name="host">IP address or domain name.</param>
+            <param name="port">Port. Usually 443.</param>
+            <param name="closedOrdersFrom">Start time.</param>
+            <param name="closedOrdersTo">End time.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.UInt32,System.String,System.String,System.Int32,System.String,System.Int32,System.String,System.String,System.DateTime,System.DateTime)">
+            <summary>
+            Initialize quote client via proxy to give history of closed orders.
+            </summary>
+            <param name="user">Account number.</param>
+            <param name="password">Password.</param>
+            <param name="host">IP address or domain name.</param>
+            <param name="port">Port. Usually 443.</param>
+            <param name="proxyHost">IP address of proxy server.</param>
+            <param name="proxyPort">Port of proxy server.</param>
+            <param name="proxyUser">Account of proxy server.</param>
+            <param name="proxyPass">Password of proxy server.</param>
+            <param name="closedOrdersFrom">Start time.</param>
+            <param name="closedOrdersTo">End time.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.LoadSrv(System.String,TradingAPI.MT4Server.Server[]@)">
+            <summary>
+            Load server list.
+            </summary>
+            <param name="serverFilePath">Path to srv file. You can find srv files in MT4\config folder.</param>
+            <param name="srvList">List of loaded servers.</param>
+            <returns>Main server structure.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.LoadSrv(System.String)">
+            <summary>
+            Load only main server.
+            </summary>
+            <param name="serverFilePath">Path to srv file. You can find srv files in MT4\config folder.</param>
+            <returns>Main server structure.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetServerInfo">
+            <summary>
+            Get server info.
+            </summary>
+            <returns>Server info structure.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetDemo(System.String,System.Int32,System.Double,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Get demo account.
+            </summary>
+            <param name="serverFilePath">Path to srv file. You can find srv files in MT4\config folder.</param>
+            <param name="leverage">Leverage value.</param>
+            <param name="balance">Deposit value.</param>
+            <param name="name">Currency name.</param>
+            <param name="accountType">Account type.</param>
+            <param name="country">Country.</param>
+            <param name="city">City.</param>
+            <param name="state">State.</param>
+            <param name="zip">Zip postal code.</param>
+            <param name="address">Address.</param>
+            <param name="phone">Phone number.</param>
+            <param name="email">Email address.</param>
+            <param name="terminalCompany">Terminal company name.</param>
+            <returns>Demo account.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetDemo(System.String,System.Int32,System.Int32,System.Double,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Get demo account.
+            </summary>
+            <param name="host">IP address or domain name.</param>
+            <param name="port">Port. Usually 443.</param>
+            <param name="leverage">Leverage value.</param>
+            <param name="balance">Deposit value.</param>
+            <param name="name">Currency name.</param>
+            <param name="accountType">Account type.</param>
+            <param name="country">Country.</param>
+            <param name="city">City.</param>
+            <param name="state">State.</param>
+            <param name="zip">Zip postal code.</param>
+            <param name="address">Address.</param>
+            <param name="phone">Phone number.</param>
+            <param name="email">Email address.</param>
+            <param name="terminalCompany">Terminal company name.</param>
+            <returns>Demo account.</returns>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.Symbols">
+            <summary>
+            List of avalible symbols.
+            </summary>
+            <exception cref="T:System.Exception">Not connected.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetSymbolInfo(System.String)">
+            <summary>
+            Get instrument parameters.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <returns>Symbol information structure.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetSymbolGroupParams(System.String)">
+            <summary>
+            Symbol group parameters.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <returns>Symbol security group parameters structure.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetSymbolGroup(System.String)">
+            <summary>
+            Symbol group name and description.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <returns>Symbol groups structure.</returns>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.GroupParameters">
+            <summary>
+            Parameters for each group.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.IsSubscribed(System.String)">
+            <summary>
+            Check subscribe trading instrument.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Subscribe(System.String)">
+            <summary>
+            Subscribe trading instrument.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <exception cref="T:System.Exception">Not connected.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Unsubscribe(System.String)">
+            <summary>
+            Unsubscribe trading instrument.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <exception cref="T:System.Exception">Not connected.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Subscribe(System.String[])">
+            <summary>
+            Subscribes multiple instruments.
+            </summary>
+            <param name="symbols">Array of symbols for trading.</param>
+            <exception cref="T:System.Exception">Not connected.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetQuote(System.String)">
+            <summary>
+            Latest quote for the symbol.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <exception cref="T:System.Exception">Symbol not subscribed.</exception>
+            <returns>Return null if no quotes for specified symbol avalible, otherwise return quote event arguments.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Connect">
+            <summary>
+            Connect to server.
+            </summary>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Unable to login for some reason.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.ConnectAsync">
+            <summary>
+            Connect to server without awiting reply from server. Use OnConnect event to get result.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetOpenedOrders">
+            <summary>
+            Returns opened orders.
+            </summary>
+            <returns>Array of orders.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.GetOpenedOrder(System.Int32)">
+            <summary>
+            Get opened order by ticket.
+            </summary>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <returns>Return null if order not found, otherwise return order data.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.DownloadQuoteHistory(System.String,TradingAPI.MT4Server.Timeframe,System.DateTime,System.Int16)">
+            <summary>
+            Request quote history. Use QuoteHistory event to get bars.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="tf">Timeframe for quote history.</param>
+            <param name="from">Start time of history.</param>
+            <param name="count">Number of requested histories.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.DownloadOrderHistory(System.DateTime,System.DateTime)">
+            <summary>
+            Returns closed orders.
+            </summary>
+            <param name="from">Start time of history.</param>
+            <param name="to">End time of history.</param>
+            <returns>Array of orders.</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Disconnect">
+            <summary>
+            Disconnect from server.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.QuoteClient.Connected">
+            <summary>
+            Check connection state.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.QuoteEventArgs">
+            <summary>
+            New quote event arguments.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteEventArgs.Symbol">
+            <summary>
+            Trading instrument.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteEventArgs.Bid">
+            <summary>
+            Bid.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteEventArgs.Ask">
+            <summary>
+            Ask.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteEventArgs.Time">
+            <summary>
+            Server time.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteEventArgs.ToString">
+            <summary>
+            Convert to string.
+            </summary>
+            <returns>"Symbol Bid Ask"</returns>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteEventArgs.GetBid">
+            <summary>
+            Bid.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.QuoteEventArgs.GetAsk">
+            <summary>
+            Ask.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.OrderProgressEventHandler">
+            <summary>
+            Open/close progress of the order before ticket number assign.
+            </summary>
+            <param name="sender">Object that sent message</param>
+            <param name="args">Progress event arguments</param>
+        </member>
+        <member name="T:TradingAPI.MT4Server.OrderClient">
+            <summary>
+            Trading client.
+            </summary>
+        </member>
+        <member name="E:TradingAPI.MT4Server.OrderClient.OnOrderProgress">
+            <summary>
+            Open/close progress of the order before ticket number assign.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.OrderClient.TradeTimeout">
+            <summary>
+            How long to wait for trade execution, if TradeTimeoutException no reply from server.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.OrderClient.User">
+            <summary>
+            Account number.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.#ctor">
+            <summary>
+            Initialize order client. For using with COM. Call Init() after constructor.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.Init(TradingAPI.MT4Server.QuoteClient)">
+            <summary>
+            Initialize order client. For using with COM.
+            </summary>
+            <param name="qc">Quote client.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.#ctor(TradingAPI.MT4Server.QuoteClient)">
+            <summary>
+            Main constructor.
+            </summary>
+            <param name="qc">Quote client.</param>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderModify(TradingAPI.MT4Server.Op,System.Int32,System.Double,System.Double,System.Double,System.DateTime)">
+            <summary>
+            Modification of characteristics for the previously opened position or pending orders.
+            </summary>
+            <param name="type">Operation type.</param>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <param name="price">Price value.</param>
+            <param name="stoploss">Stop loss level.</param>
+            <param name="takeprofit">Take profit level.</param>
+            <param name="expiration">Expiration time.</param>
+            <returns>Modified order.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderModifyAsync(TradingAPI.MT4Server.Op,System.Int32,System.Double,System.Double,System.Double,System.DateTime)">
+            <summary>
+            Modification of characteristics for the previously opened position or pending orders without awiting reply from server. Use OnOrderProgress event to get result.
+            </summary>
+            <param name="type">Operation type.</param>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <param name="price">Price value.</param>
+            <param name="stoploss">Stop loss level.</param>
+            <param name="takeprofit">Take profit level.</param>
+            <param name="expiration">Expiration time.</param>
+            <returns>Temporary ID to identify order until it get a ticket number.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderClose(System.String,System.Int32,System.Double,System.Double,System.Int32)">
+            <summary>
+            Close opened order. 
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred closing price.</param>
+            <param name="slippage">Value of the maximum price slippage in points.</param>
+            <returns>Closed order.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderCloseAsync(System.String,System.Int32,System.Double,System.Double,System.Int32)">
+            <summary>
+            Close opened order without awiting reply from server. Use OnOrderProgress event to get result.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred closing price.</param>
+            <param name="slippage">Value of the maximum price slippage in points.</param>
+            <returns>Temporary ID to identify order until it get a ticket number.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderCloseBy(System.String,System.Int32,System.Int32)">
+            <summary>
+            Close of pair of opposite open orders.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="ticket1">Unique number of the first order ticket.</param>
+            <param name="ticket2">Unique number of the two order ticket.</param>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderCloseByAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Close of pair of opposite open orders without awiting reply from server. Use OnOrderProgress event to get result.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="ticket1">Unique number of the first order ticket.</param>
+            <param name="ticket2">Unique number of the two order ticket.</param>
+            <returns>Temporary ID to identify order until it get a ticket number.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderMultipleCloseBy(System.String)">
+            <summary>
+            Close of multiple open orders.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderMultipleCloseByAsync(System.String)">
+            <summary>
+            Close of multiple open orders without awiting reply from server. Use OnOrderProgress event to get result.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <returns>Temporary ID to identify order until it get a ticket number.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderDelete(System.Int32,TradingAPI.MT4Server.Op,System.String,System.Double,System.Double)">
+            <summary>
+            Delete pending order.
+            </summary>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <param name="type">Operation type.</param>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred deleting price.</param>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderDeleteAsync(System.Int32,TradingAPI.MT4Server.Op,System.String,System.Double,System.Double)">
+            <summary>
+            Delete pending order without awiting reply from server. Use OnOrderProgress event to get result.
+            </summary>
+            <param name="ticket">Unique number of the order ticket.</param>
+            <param name="type">Operation type.</param>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred deleting price.</param>
+            <returns>Temporary ID to identify order until it get a ticket number.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderSend(System.String,TradingAPI.MT4Server.Op,System.Double,System.Double,System.Int32,System.Double,System.Double,System.String,System.Int32,System.DateTime)">
+            <summary>
+            The main function used to open a position or place a pending order.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="operation">Operation type.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred price of the trade.</param>
+            <param name="slippage">Maximum price slippage for buy or sell order.</param>
+            <param name="stoploss">Stop loss level.</param>
+            <param name="takeprofit">Take profit level.</param>
+            <param name="comment">Order comment text. Last part of the comment may be changed by server.</param>
+            <param name="magic">Order magic number. May be used as user defined identifier.</param>
+            <param name="expiration">Order expiration time (for pending orders only).</param>
+            <returns>Opened order.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.RequoteException">Server cannot execute order(instant execution) at specified price. Check exception fields for latest server price.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderSend(System.String,TradingAPI.MT4Server.Op,System.Double,System.Double,System.Int32,System.Double,System.Double)">
+            <summary>
+            The main function used to open a position or place a pending order.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="operation">Operation type.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred price of the trade.</param>
+            <param name="slippage">Maximum price slippage for buy or sell order.</param>
+            <param name="stoploss">Stop loss level.</param>
+            <param name="takeprofit">Take profit level.</param>
+            <returns>Opened order.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
+            <exception cref="T:TradingAPI.MT4Server.RequoteException">Server cannot execute order(instant execution) at specified price. Check exception fields for latest server price.</exception>
+            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.OrderSendAsync(System.String,TradingAPI.MT4Server.Op,System.Double,System.Double,System.Int32,System.Double,System.Double,System.String,System.Int32,System.DateTime)">
+            <summary>
+            Send order without awiting reply from server. Use OnOrderProgress event to get result.
+            </summary>
+            <param name="symbol">Symbol for trading.</param>
+            <param name="operation">Operation type.</param>
+            <param name="volume">Number of lots.</param>
+            <param name="price">Preferred price of the trade.</param>
+            <param name="slippage">Maximum price slippage for buy or sell order.</param>
+            <param name="stoploss">Stop loss level.</param>
+            <param name="takeprofit">Take profit level.</param>
+            <param name="comment">Order comment text. Last part of the comment may be changed by server.</param>
+            <param name="magic">Order magic number. May be used as user defined identifier.</param>
+            <param name="expiration">Order expiration time (for pending orders only).</param>
+            <returns>Temporary ID to identify order until it get a ticket number from server.</returns>
+            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.Connect">
+            <summary>
+            Connect to server.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.OrderClient.Disconnect">
+            <summary>
+            Disconnect from server.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.OrderClient.Connected">
+            <summary>
+            Connection state.
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.OrderClient.IsTradeAllowed">
+            <summary>
+            Expert is allowed to trade and a thread for trading is not occupied.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Server">
+            <summary>
+            Additional server parameters.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.server">
+            <summary>
+            address
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.ip">
+            <summary>
+            IP
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.desc">
+            <summary>
+            description
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.is_proxy">
+            <summary>
+            proxy flag
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.priority">
+            <summary>
+            priority value
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.loading">
+            <summary>
+            is loading
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.ip_internal">
+            <summary>
+            internal IP address
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.ping">
+            <summary>
+            ping time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.reserved">
+            <summary>
+            reserved
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Server.ptr_next">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.Server.Host">
+            <summary>
+            Get host.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:TradingAPI.MT4Server.Server.Port">
+            <summary>
+            Get port.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:TradingAPI.MT4Server.MainServer">
+            <summary>
+            Main server parameters.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.name">
+            <summary>
+            name
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.comment">
+            <summary>
+            comment
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.is_demo">
+            <summary>
+            demo flag
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.ping">
+            <summary>
+            ping time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.dummy_C8">
+            <summary>
+            not used
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.dummy_CC">
+            <summary>
+            not used
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.ptr_dataserver">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.count">
+            <summary>
+            Count additional structs
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.host_addr">
+            <summary>
+            main host
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.time">
+            <summary>
+            time
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.dummy_11C">
+            <summary>
+            not used
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.MainServer.ptr_next">
+            <summary>
+            for internal usage
+            </summary>
+        </member>
+        <member name="P:TradingAPI.MT4Server.MainServer.Host">
+            <summary>
+            Get host.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:TradingAPI.MT4Server.MainServer.Port">
+            <summary>
+            Get port.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:TradingAPI.MT4Server.ServerInfo">
+            <summary>
+            Server information.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ServerInfo.name">
+            <summary>
+            Name srv file.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.ServerInfo.comment">
+            <summary>
+            Server descpiption.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.QuoteHistoryEventArgs">
+            <summary>
+            Quote history event args.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteHistoryEventArgs.Symbol">
+            <summary>
+            Instrument.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteHistoryEventArgs.Timeframe">
+            <summary>
+            Timeframe.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.QuoteHistoryEventArgs.Bars">
+            <summary>
+            History bars.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.SymbolInfo">
+            <summary>
+            Instrument parameters.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Execution">
+            <summary>
+            Execution type.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.StopsLevel">
+            <summary>
+            Stop level in points.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Digits">
+            <summary>
+            Count of digits after decimal point in the symbol prices.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Point">
+            <summary>
+            Point size in the quote currency.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.SwapLong">
+            <summary>
+            Swap of the long position.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.SwapShort">
+            <summary>
+            Swap of the short position.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Spread">
+            <summary>
+            Spread value in pips.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.FreezeLevel">
+            <summary>
+            Order freeze level in points. If the execution price lies within the range defined by the freeze level, the order cannot be modified, cancelled or closed.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.MarginCurrency">
+            <summary>
+            Currency of margin requirments.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.ProfitMode">
+            <summary>
+            Profit calculation mode.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.MarginMode">
+            <summary>
+            Margin calculation mode.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.ContractSize">
+            <summary>
+            Contract size.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Currency">
+            <summary>
+            Currency.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.MarginDivider">
+            <summary>
+            Margin divider.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Ex">
+            <summary>
+            Extended symbol data.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.SymbolInfo.Code">
+            <summary>
+            Internal code.
+            </summary>
+        </member>
+        <member name="M:TradingAPI.MT4Server.SymbolInfo.ToString">
+            <summary>
+            Convert to string.
+            </summary>
+            <returns>"Digits StopsLevel Execution"</returns>
+        </member>
+        <member name="T:TradingAPI.MT4Server.Timeframe">
+            <summary>
+            Timeframe for quote history download. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.M1">
+            <summary>
+            1 minute. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.M5">
+            <summary>
+            5 minutes. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.M15">
+            <summary>
+            15 minutes. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.M30">
+            <summary>
+            30 minutes.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.H1">
+            <summary>
+            1 hour. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.H4">
+            <summary>
+            4 hour.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.D1">
+            <summary>
+            Daily. 
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.W1">
+            <summary>
+            Weekly.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.Timeframe.MN1">
+            <summary>
+            Monthly.
+            </summary>
+        </member>
+        <member name="T:TradingAPI.MT4Server.UpdateAction">
+            <summary>
+            Type of update action for OrderUpdate event.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PositionOpen">
+            <summary>
+            New postion.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PositionClose">
+            <summary>
+            Position closed full or partially.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PositionModify">
+            <summary>
+            Position was modified.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PendingOpen">
+            <summary>
+            New pening order.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PendingClose">
+            <summary>
+            Pending order was deleted.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PendingModify">
+            <summary>
+            Pending order was modified.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.PendingFill">
+            <summary>
+            Pending order was filled.
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.Balance">
+            <summary>
+            Balance update(deposit, withdraw).
+            </summary>
+        </member>
+        <member name="F:TradingAPI.MT4Server.UpdateAction.Credit">
+            <summary>
+            Credit update.
+            </summary>
+        </member>
+    </members>
+</doc>
