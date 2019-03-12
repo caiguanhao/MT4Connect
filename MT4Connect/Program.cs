@@ -48,7 +48,7 @@ namespace MT4Connect
 
         public class Account
         {
-            public int Login { get; set; }
+            public uint Login { get; set; }
             public string Password { get; set; }
             public string Host { get; set; }
             public int Port { get; set; }
@@ -159,8 +159,9 @@ namespace MT4Connect
                     qc.Disconnect();
                     return resp;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine("[ERROR] {0}", ex.Message);
                     return Response.AsJson(new Dictionary<string, int?> { { "account", null } });
                 }
             };
