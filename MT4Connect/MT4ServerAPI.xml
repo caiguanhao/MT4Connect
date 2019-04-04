@@ -1453,6 +1453,11 @@
             Price data.
             </summary>
         </member>
+        <member name="F:TradingAPI.MT4Server.ProgressType.Exception">
+            <summary>
+            Exception.
+            </summary>
+        </member>
         <member name="T:TradingAPI.MT4Server.ConvertBytes">
             <summary>
             Convert byte array to strings.
@@ -1645,12 +1650,17 @@
             Path for saving .sym files. If null - save in current folder.
             </summary>
         </member>
+        <member name="F:TradingAPI.MT4Server.QuoteClient.LoginIdWebServerUrl">
+            <summary>
+            Calculate LoginId on WebServer instead of local LoginId.dll
+            </summary>
+        </member>
         <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor">
             <summary>
             Initialize quote client. For using with COM. Call Init() after constructor.
             </summary>
         </member>
-        <member name="M:TradingAPI.MT4Server.QuoteClient.Init(System.Int32,System.String,System.String,System.Int32)">
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Init(System.UInt32,System.String,System.String,System.Int32)">
             <summary>
             Initialize quote client. For using with COM.
             </summary>
@@ -1659,7 +1669,7 @@
             <param name="host">IP address or domain name.</param>
             <param name="port">Port. Usually 443.</param>
         </member>
-        <member name="M:TradingAPI.MT4Server.QuoteClient.Init(System.Int32,System.String,System.String)">
+        <member name="M:TradingAPI.MT4Server.QuoteClient.Init(System.UInt32,System.String,System.String)">
             <summary>
             Initialize quote client. For using with COM.
             </summary>
@@ -1667,7 +1677,7 @@
             <param name="password">Password.</param>
             <param name="serverFilePath">Path to srv file. You can find srv files in MT4\config folder.</param>
         </member>
-        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.Int32,System.String,System.String,System.Int32)">
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.UInt32,System.String,System.String,System.Int32)">
             <summary>
             Initialize quote client.
             </summary>
@@ -1676,7 +1686,7 @@
             <param name="host">IP address or domain name.</param>
             <param name="port">Port. Usually 443.</param>
         </member>
-        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.Int32,System.String,System.String,System.Int32,System.String,System.Int32,System.String,System.String)">
+        <member name="M:TradingAPI.MT4Server.QuoteClient.#ctor(System.UInt32,System.String,System.String,System.Int32,System.String,System.Int32,System.String,System.String)">
             <summary>
             Initialize quote client via proxy.
             </summary>
@@ -1740,45 +1750,6 @@
             Get server info.
             </summary>
             <returns>Server info structure.</returns>
-        </member>
-        <member name="M:TradingAPI.MT4Server.QuoteClient.GetDemo(System.String,System.Int32,System.Double,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
-            <summary>
-            Get demo account.
-            </summary>
-            <param name="serverFilePath">Path to srv file. You can find srv files in MT4\config folder.</param>
-            <param name="leverage">Leverage value.</param>
-            <param name="balance">Deposit value.</param>
-            <param name="name">Currency name.</param>
-            <param name="accountType">Account type.</param>
-            <param name="country">Country.</param>
-            <param name="city">City.</param>
-            <param name="state">State.</param>
-            <param name="zip">Zip postal code.</param>
-            <param name="address">Address.</param>
-            <param name="phone">Phone number.</param>
-            <param name="email">Email address.</param>
-            <param name="terminalCompany">Terminal company name.</param>
-            <returns>Demo account.</returns>
-        </member>
-        <member name="M:TradingAPI.MT4Server.QuoteClient.GetDemo(System.String,System.Int32,System.Int32,System.Double,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
-            <summary>
-            Get demo account.
-            </summary>
-            <param name="host">IP address or domain name.</param>
-            <param name="port">Port. Usually 443.</param>
-            <param name="leverage">Leverage value.</param>
-            <param name="balance">Deposit value.</param>
-            <param name="name">Currency name.</param>
-            <param name="accountType">Account type.</param>
-            <param name="country">Country.</param>
-            <param name="city">City.</param>
-            <param name="state">State.</param>
-            <param name="zip">Zip postal code.</param>
-            <param name="address">Address.</param>
-            <param name="phone">Phone number.</param>
-            <param name="email">Email address.</param>
-            <param name="terminalCompany">Terminal company name.</param>
-            <returns>Demo account.</returns>
         </member>
         <member name="P:TradingAPI.MT4Server.QuoteClient.Symbols">
             <summary>
@@ -1930,16 +1901,6 @@
             Convert to string.
             </summary>
             <returns>"Symbol Bid Ask"</returns>
-        </member>
-        <member name="M:TradingAPI.MT4Server.QuoteEventArgs.GetBid">
-            <summary>
-            Bid.
-            </summary>
-        </member>
-        <member name="M:TradingAPI.MT4Server.QuoteEventArgs.GetAsk">
-            <summary>
-            Ask.
-            </summary>
         </member>
         <member name="T:TradingAPI.MT4Server.OrderProgressEventHandler">
             <summary>
@@ -2124,23 +2085,6 @@
             <exception cref="T:TradingAPI.MT4Server.RequoteException">Server cannot execute order(instant execution) at specified price. Check exception fields for latest server price.</exception>
             <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
         </member>
-        <member name="M:TradingAPI.MT4Server.OrderClient.OrderSend(System.String,TradingAPI.MT4Server.Op,System.Double,System.Double,System.Int32,System.Double,System.Double)">
-            <summary>
-            The main function used to open a position or place a pending order.
-            </summary>
-            <param name="symbol">Symbol for trading.</param>
-            <param name="operation">Operation type.</param>
-            <param name="volume">Number of lots.</param>
-            <param name="price">Preferred price of the trade.</param>
-            <param name="slippage">Maximum price slippage for buy or sell order.</param>
-            <param name="stoploss">Stop loss level.</param>
-            <param name="takeprofit">Take profit level.</param>
-            <returns>Opened order.</returns>
-            <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
-            <exception cref="T:TradingAPI.MT4Server.ServerException">Check exception message for details.</exception>
-            <exception cref="T:TradingAPI.MT4Server.RequoteException">Server cannot execute order(instant execution) at specified price. Check exception fields for latest server price.</exception>
-            <exception cref="T:TradingAPI.MT4Server.TimeoutException">No reply from server in TradeTimeout milliseconds.</exception>
-        </member>
         <member name="M:TradingAPI.MT4Server.OrderClient.OrderSendAsync(System.String,TradingAPI.MT4Server.Op,System.Double,System.Double,System.Int32,System.Double,System.Double,System.String,System.Int32,System.DateTime)">
             <summary>
             Send order without awiting reply from server. Use OnOrderProgress event to get result.
@@ -2157,26 +2101,6 @@
             <param name="expiration">Order expiration time (for pending orders only).</param>
             <returns>Temporary ID to identify order until it get a ticket number from server.</returns>
             <exception cref="T:TradingAPI.MT4Server.TradeContextBusyException">All trade connections are busy.</exception>
-        </member>
-        <member name="M:TradingAPI.MT4Server.OrderClient.Connect">
-            <summary>
-            Connect to server.
-            </summary>
-        </member>
-        <member name="M:TradingAPI.MT4Server.OrderClient.Disconnect">
-            <summary>
-            Disconnect from server.
-            </summary>
-        </member>
-        <member name="P:TradingAPI.MT4Server.OrderClient.Connected">
-            <summary>
-            Connection state.
-            </summary>
-        </member>
-        <member name="P:TradingAPI.MT4Server.OrderClient.IsTradeAllowed">
-            <summary>
-            Expert is allowed to trade and a thread for trading is not occupied.
-            </summary>
         </member>
         <member name="T:TradingAPI.MT4Server.Server">
             <summary>
@@ -2287,7 +2211,7 @@
         </member>
         <member name="F:TradingAPI.MT4Server.MainServer.count">
             <summary>
-            Count additional structs
+            Count slave servers
             </summary>
         </member>
         <member name="F:TradingAPI.MT4Server.MainServer.host_addr">
