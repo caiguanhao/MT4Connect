@@ -79,6 +79,16 @@ namespace MT4Connect
             public int Port { get; set; }
         }
 
+        public class Order
+        {
+            public string Symbol { get; set; }
+            public string Type { get; set; }
+            public double Volume { get; set; }
+            public double StopLoss { get; set; }
+            public double TakeProfit { get; set; }
+            public string Comment { get; set; }
+        }
+
         static Task<PingReply> PingAsync(string address)
         {
             var tcs = new TaskCompletionSource<PingReply>();
@@ -158,10 +168,47 @@ namespace MT4Connect
                 }
             };
 
+            Post["/order"] = _ =>
+            {
+                try
+                {
+                    var order = this.Bind<Order>();
+                    var qc = Current.Accounts[1100420183];
+                    var oc = new TradingAPI.MT4Server.OrderClient(qc.Client);
+                    while (qc.Client.GetQuote(order.Symbol) == null)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    var ask = qc.Client.GetQuote(order.Symbol).Ask;
+                    var newOrder = oc.OrderSend(order.Symbol, Type2Op(order.Type), order.Volume, ask, 5,
+                        order.StopLoss, order.TakeProfit, order.Comment, 0, new DateTime());
+                    return Response.AsJson(new Dictionary<string, int> { { "ticket", newOrder.Ticket } });
+                } catch (Exception ex)
+                {
+                    return Response.AsJson(new Dictionary<string, string> { { "message", ex.Message } }, HttpStatusCode.Unauthorized);
+                }
+            };
+
             Get["/accounts"] = _ =>
             {
                 return Response.AsJson(new Dictionary<string, List<MT4Account>> { { "accounts", Current.Accounts.AsMT4Accounts } });
             };
+        }
+
+        private TradingAPI.MT4Server.Op Type2Op(string type)
+        {
+            if (type == "BUY")
+            {
+                return TradingAPI.MT4Server.Op.Buy;
+            }
+            else if (type == "SELL")
+            {
+                return TradingAPI.MT4Server.Op.Sell;
+            }
+            else
+            {
+                throw new Exception("unknown order type");
+            }
         }
     }
 
@@ -204,7 +251,7 @@ namespace MT4Connect
 
     public class FXClient
     {
-        private TradingAPI.MT4Server.QuoteClient Client { get; set; }
+        public TradingAPI.MT4Server.QuoteClient Client { get; set; }
         private string ServerName { get; set; }
         private System.Timers.Timer ReconnectTimer;
 
@@ -416,10 +463,11 @@ namespace MT4Connect
         {
             var key = String.Format("forex:account#{0:D}", Client.User);
             var marginLevel = 0.0;
-            if (Client.AccountMargin > 0) marginLevel = Math.Round(Client.AccountEquity / Client.AccountMargin * 100, 2, MidpointRounding.AwayFromZero);
+            if (Client.AccountMargin > 0) marginLevel = Round(Client.AccountEquity / Client.AccountMargin * 100);
             var value = String.Format("{0:D}#{1:D}#{2:D}#{3:D}#{4:G}#{5:G}#{6:G}#{7:G}#{8:G}#{9:G}#{10:G}#{11}#{12}#{13}",
-                    Client.User, Client.IsDemoAccount ? 0 : 2, Client.AccountLeverage, Client.Account.maxpositions, Client.AccountBalance,
-                    Client.AccountCredit, Client.AccountProfit, Client.AccountEquity, Client.AccountMargin, Client.AccountFreeMargin, marginLevel,
+                    Client.User, Client.IsDemoAccount ? 0 : 2, Client.AccountLeverage, Client.Account.maxpositions,
+                    Round(Client.AccountBalance), Round(Client.AccountCredit), Round(Client.AccountProfit),
+                    Round(Client.AccountEquity), Round(Client.AccountMargin), Round(Client.AccountFreeMargin), marginLevel,
                     Client.Account.currency, ServerName, Client.AccountName);
             Redis.Db.StringSet(key, value);
         }
