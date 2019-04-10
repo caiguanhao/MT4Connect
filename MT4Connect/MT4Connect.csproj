@@ -35,6 +35,9 @@
     <AllowedReferenceRelatedFileExtensions>-</AllowedReferenceRelatedFileExtensions>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="InfluxDB.LineProtocol, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\InfluxDB.LineProtocol.1.1.0\lib\net45\InfluxDB.LineProtocol.dll</HintPath>
+    </Reference>
     <Reference Include="MT4ServerAPI">
       <HintPath>.\MT4ServerAPI.dll</HintPath>
     </Reference>
@@ -92,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FXClient.cs" />
+    <Compile Include="Influx.cs" />
     <Compile Include="Order.cs" />
     <Compile Include="Postgres.cs" />
     <Compile Include="Program.cs" />

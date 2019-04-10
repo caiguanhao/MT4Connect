@@ -1,8 +1,63 @@
 ﻿using Npgsql;
 using NpgsqlTypes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MT4Connect
 {
+    public class Postgres
+    {
+        private static bool running = false;
+        private static readonly object padlock = new object();
+
+        public static void WatchInstructions()
+        {
+            lock (padlock)
+            {
+                if (running) return;
+                running = true;
+                var pgTimer = new System.Timers.Timer(200);
+                pgTimer.Elapsed += (_, e) =>
+                {
+                    if (Current.Accounts.Count == 0) return;
+                    pgTimer.Stop();
+                    var orders = new List<Order>();
+                    InstructionsPostgres.SelectStmt.Parameters["login"].Value = Current.Accounts.Keys.ToArray();
+                    using (var reader = InstructionsPostgres.SelectStmt.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            orders.Add(new Order()
+                            {
+                                Id = reader.GetInt64(0),
+                                Login = Convert.ToUInt32(reader.GetInt32(1)),
+                                Action = reader.GetString(2),
+                                Symbol = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                                OrderType = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                                Volume = reader.IsDBNull(5) ? 0 : Convert.ToDouble(reader.GetDecimal(5)),
+                                Price = reader.IsDBNull(6) ? 0 : Convert.ToDouble(reader.GetDecimal(6)),
+                                StopLoss = reader.IsDBNull(7) ? 0 : Convert.ToDouble(reader.GetDecimal(7)),
+                                TakeProfit = reader.IsDBNull(8) ? 0 : Convert.ToDouble(reader.GetDecimal(8)),
+                                Comment = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                                Ticket = reader.IsDBNull(10) ? 0 : reader.GetInt64(10)
+                            });
+                        }
+                    }
+                    if (orders.Count > 0)
+                    {
+                        orders.ForEach((order) =>
+                        {
+                            order.Process();
+                        });
+                    }
+                    pgTimer.Start();
+                };
+                pgTimer.Start();
+            }
+        }
+    }
+
     public sealed class OrdersPostgres
     {
         private static NpgsqlConnection _Conn = null;

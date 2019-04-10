@@ -40,6 +40,10 @@ namespace MT4Connect
                 {
                     Close();
                 }
+                else
+                {
+                    throw new Exception("unknown action");
+                }
             }
             catch (Exception ex)
             {
