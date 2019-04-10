@@ -16,7 +16,26 @@ using System.Threading.Tasks;
 
 namespace MT4Connect
 {
-    public class Logger : IApplicationStartup
+    public class Constants
+    {
+        public static TimeSpan KeyTimeout = TimeSpan.FromSeconds(2);
+        public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(2);
+    }
+
+    public class Logger
+    {
+        public static void Info(string arg0)
+        {
+            Console.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
+        }
+        
+        public static void Info(string format, params object[] arg)
+        {
+            Console.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
+        }
+    }
+
+    public class NancyLogger : IApplicationStartup
     {
         public void Initialize(IPipelines pipelines)
         {
@@ -77,16 +96,6 @@ namespace MT4Connect
             public string ServerName { get; set; }
             public string Host { get; set; }
             public int Port { get; set; }
-        }
-
-        public class Order
-        {
-            public string Symbol { get; set; }
-            public string Type { get; set; }
-            public double Volume { get; set; }
-            public double StopLoss { get; set; }
-            public double TakeProfit { get; set; }
-            public string Comment { get; set; }
         }
 
         static Task<PingReply> PingAsync(string address)
@@ -155,11 +164,20 @@ namespace MT4Connect
                     var account = this.Bind<Account>();
                     if (Current.Accounts.ContainsKey(account.Login))
                     {
-                        return Response.AsJson(new Dictionary<string, string> { { "message", "already added" } }, HttpStatusCode.BadRequest);
+                        var c = Current.Accounts[account.Login];
+                        return Response.AsJson(new Dictionary<string, object> { { "message", "already added" }, { "account", c.AsMT4Account() } }, HttpStatusCode.BadRequest);
                     }
+                    Logger.Info("Connecting to {0}...", account.Login);
                     var client = new FXClient(account.Login, account.Password, account.ServerName, account.Host, account.Port);
                     client.Connect();
-                    Current.Accounts.Add(account.Login, client);
+                    if (client.IsMaster())
+                    {
+                        Current.Accounts.Add(account.Login, client);
+                    }
+                    else
+                    {
+                        client.Disconnect();
+                    }
                     return Response.AsJson(new Dictionary<string, MT4Account> { { "account", client.AsMT4Account() } });
                 }
                 catch (Exception ex)
@@ -168,22 +186,20 @@ namespace MT4Connect
                 }
             };
 
-            Post["/order"] = _ =>
+            Post["/logout"] = _ =>
             {
                 try
                 {
-                    var order = this.Bind<Order>();
-                    var qc = Current.Accounts[1100420183];
-                    var oc = new TradingAPI.MT4Server.OrderClient(qc.Client);
-                    while (qc.Client.GetQuote(order.Symbol) == null)
+                    var account = this.Bind<Account>();
+                    if (!Current.Accounts.ContainsKey(account.Login))
                     {
-                        Thread.Sleep(10);
+                        return Response.AsJson(new Dictionary<string, string> { { "message", "no such account" } });
                     }
-                    var ask = qc.Client.GetQuote(order.Symbol).Ask;
-                    var newOrder = oc.OrderSend(order.Symbol, Type2Op(order.Type), order.Volume, ask, 5,
-                        order.StopLoss, order.TakeProfit, order.Comment, 0, new DateTime());
-                    return Response.AsJson(new Dictionary<string, int> { { "ticket", newOrder.Ticket } });
-                } catch (Exception ex)
+                    Current.Accounts[account.Login].Disconnect();
+                    Current.Accounts.Remove(account.Login);
+                    return Response.AsJson(new Dictionary<string, string> { { "message", "disconnected" } });
+                }
+                catch (Exception ex)
                 {
                     return Response.AsJson(new Dictionary<string, string> { { "message", ex.Message } }, HttpStatusCode.Unauthorized);
                 }
@@ -193,22 +209,6 @@ namespace MT4Connect
             {
                 return Response.AsJson(new Dictionary<string, List<MT4Account>> { { "accounts", Current.Accounts.AsMT4Accounts } });
             };
-        }
-
-        private TradingAPI.MT4Server.Op Type2Op(string type)
-        {
-            if (type == "BUY")
-            {
-                return TradingAPI.MT4Server.Op.Buy;
-            }
-            else if (type == "SELL")
-            {
-                return TradingAPI.MT4Server.Op.Sell;
-            }
-            else
-            {
-                throw new Exception("unknown order type");
-            }
         }
     }
 
@@ -239,7 +239,7 @@ namespace MT4Connect
         {
             get
             {
-                var accounts = new List<MT4Account>{ };
+                var accounts = new List<MT4Account> { };
                 foreach (KeyValuePair<uint, FXClient> account in this)
                 {
                     accounts.Add(account.Value.AsMT4Account());
@@ -261,12 +261,13 @@ namespace MT4Connect
             Client = new TradingAPI.MT4Server.QuoteClient(login, password, host, port);
             Client.OnDisconnect += (_, e) =>
             {
-                Console.WriteLine("Disconnected to {0}: {1}", Client.User, e.Exception.Message);
+                if (!IsMaster()) return;
+                Logger.Info("Disconnected to {0}: {1}", Client.User, e.Exception.Message);
                 ReconnectTimer = new System.Timers.Timer(3000);
                 ReconnectTimer.Elapsed += (__, ee) =>
                 {
                     ReconnectTimer.Stop();
-                    Console.WriteLine("Reconnecting to {0}...", Client.User);
+                    Logger.Info("Reconnecting to {0}...", Client.User);
                     try
                     {
                         Client.Connect();
@@ -280,9 +281,10 @@ namespace MT4Connect
             };
             Client.OnConnect += (_, e) =>
             {
+                if (!IsMaster()) return;
                 if (e.Exception != null)
                 {
-                    Console.WriteLine("Failed to connect to {0}: {1}", Client.User, e.Exception.Message);
+                    Logger.Info("Failed to connect to {0}: {1}", Client.User, e.Exception.Message);
                     return;
                 }
                 if (Client.Connected)
@@ -291,7 +293,7 @@ namespace MT4Connect
                     {
                         ReconnectTimer.Dispose();
                     }
-                    Console.WriteLine("Connected to {0}", Client.User);
+                    Logger.Info("Connected to {0}", Client.User);
                     UpdateAccount();
                     UpdateCurrentOrders();
                     InsertHistoryOrders();
@@ -299,6 +301,7 @@ namespace MT4Connect
             };
             Client.OnOrderUpdate += (_, e) =>
             {
+                if (!IsMaster()) return;
                 UpdateAccount();
                 switch (e.Action)
                 {
@@ -309,7 +312,7 @@ namespace MT4Connect
                     case TradingAPI.MT4Server.UpdateAction.Balance:
                     case TradingAPI.MT4Server.UpdateAction.Credit:
                         var inserted = InsertHistoryOrder(e.Order);
-                        Console.WriteLine("Inserted {0} history orders", inserted);
+                        Logger.Info("{0} inserted {1} history orders", Client.User, inserted);
                         break;
                     default:
                         UpdateCurrentOrder(e.Order.Symbol);
@@ -318,14 +321,34 @@ namespace MT4Connect
             };
             Client.OnQuote += (_, e) =>
             {
+                if (!IsMaster()) return;
                 UpdateAccount();
                 UpdateCurrentOrder(e.Symbol);
             };
         }
 
+        public bool IsMaster()
+        {
+            return Client.AccountMode == 0;
+        }
+
         public void Connect()
         {
             Client.Connect();
+        }
+
+        public void Disconnect()
+        {
+            Client.Disconnect();
+            var jsonKey = String.Format("forex:accountjson#{0:D}", Client.User);
+            var setKey = String.Format("forex:account#{0:D}#orders", Client.User);
+            var items = Redis.Db.SetMembers(setKey);
+            for (var i = 0; i < items.Length; i++)
+            {
+                Redis.Db.KeyDelete(String.Format("forex:order#{0:D}", items[i]));
+            }
+            Redis.Db.KeyDelete(setKey);
+            Redis.Db.KeyDelete(jsonKey);
         }
 
         public MT4Account AsMT4Account()
@@ -335,7 +358,7 @@ namespace MT4Connect
             return new MT4Account()
             {
                 Connected = Client.Connected,
-                Master = Client.AccountMode == 0,
+                Master = IsMaster(),
                 Login = Client.User,
                 TradeMode = Client.IsDemoAccount ? 0 : 2,
                 Leverage = Client.AccountLeverage,
@@ -363,30 +386,30 @@ namespace MT4Connect
             var reason = "";
             if (order.Comment.Contains("[sl]")) reason = "sl";
             else if (order.Comment.Contains("[tp]")) reason = "tp";
-            Postgres.InsertStmt.Parameters["login"].Value = (long)Client.User;
-            Postgres.InsertStmt.Parameters["ticket"].Value = (long)order.Ticket;
-            Postgres.InsertStmt.Parameters["order_type"].Value = (short)order.Type;
-            Postgres.InsertStmt.Parameters["symbol"].Value = order.Symbol;
-            Postgres.InsertStmt.Parameters["open_time"].Value = order.OpenTime.AddSeconds(-7200); // convert UTC+2 to UTC
-            Postgres.InsertStmt.Parameters["close_time"].Value = order.CloseTime.AddSeconds(-7200); // convert UTC+2 to UTC
-            Postgres.InsertStmt.Parameters["open_price"].Value = order.OpenPrice;
-            Postgres.InsertStmt.Parameters["close_price"].Value = order.ClosePrice;
-            Postgres.InsertStmt.Parameters["stop_loss"].Value = order.StopLoss;
-            Postgres.InsertStmt.Parameters["take_profit"].Value = order.TakeProfit;
-            Postgres.InsertStmt.Parameters["reason"].Value = reason;
-            Postgres.InsertStmt.Parameters["commission"].Value = order.Commission;
-            Postgres.InsertStmt.Parameters["swap"].Value = order.Swap;
-            Postgres.InsertStmt.Parameters["volume"].Value = order.Lots;
-            Postgres.InsertStmt.Parameters["net_profit"].Value = order.Profit;
-            Postgres.InsertStmt.Parameters["profit"].Value = order.Profit + order.Commission + order.Swap;
-            return Postgres.InsertStmt.ExecuteNonQuery();
+            OrdersPostgres.InsertStmt.Parameters["login"].Value = (long)Client.User;
+            OrdersPostgres.InsertStmt.Parameters["ticket"].Value = (long)order.Ticket;
+            OrdersPostgres.InsertStmt.Parameters["order_type"].Value = (short)order.Type;
+            OrdersPostgres.InsertStmt.Parameters["symbol"].Value = order.Symbol;
+            OrdersPostgres.InsertStmt.Parameters["open_time"].Value = order.OpenTime.AddSeconds(-7200); // convert UTC+2 to UTC
+            OrdersPostgres.InsertStmt.Parameters["close_time"].Value = order.CloseTime.AddSeconds(-7200); // convert UTC+2 to UTC
+            OrdersPostgres.InsertStmt.Parameters["open_price"].Value = order.OpenPrice;
+            OrdersPostgres.InsertStmt.Parameters["close_price"].Value = order.ClosePrice;
+            OrdersPostgres.InsertStmt.Parameters["stop_loss"].Value = order.StopLoss;
+            OrdersPostgres.InsertStmt.Parameters["take_profit"].Value = order.TakeProfit;
+            OrdersPostgres.InsertStmt.Parameters["reason"].Value = reason;
+            OrdersPostgres.InsertStmt.Parameters["commission"].Value = order.Commission;
+            OrdersPostgres.InsertStmt.Parameters["swap"].Value = order.Swap;
+            OrdersPostgres.InsertStmt.Parameters["volume"].Value = order.Lots;
+            OrdersPostgres.InsertStmt.Parameters["net_profit"].Value = order.Profit;
+            OrdersPostgres.InsertStmt.Parameters["profit"].Value = order.Profit + order.Commission + order.Swap;
+            return OrdersPostgres.InsertStmt.ExecuteNonQuery();
         }
 
         private void InsertHistoryOrders()
         {
-            Postgres.QueryStmt.Parameters["login"].Value = (long)Client.User;
+            OrdersPostgres.QueryStmt.Parameters["login"].Value = (long)Client.User;
             var from = new DateTime(2010, 1, 1);
-            using (var reader = Postgres.QueryStmt.ExecuteReader())
+            using (var reader = OrdersPostgres.QueryStmt.ExecuteReader())
             {
                 if (reader.Read() && !reader.IsDBNull(0))
                 {
@@ -406,11 +429,11 @@ namespace MT4Connect
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex);
+                    Logger.Info(ex.Message);
                     break;
                 }
             }
-            Console.WriteLine("Inserted {0} history orders", inserted);
+            Logger.Info("{0} inserted {1} history orders", Client.User, inserted);
         }
 
         private void UpdateCurrentOrders()
@@ -430,8 +453,9 @@ namespace MT4Connect
                 var value = String.Format("{0:D}#{1:D}#{2:D}#{3}#{4}#{5}#{6:G}#{7:G}#{8:G}#{9:G}##{10:G}#{11:G}#{12:G}#{13:G}#{14:G}",
                     Client.User, o.Ticket, o.Type, o.Symbol, ToUnix(o.OpenTime), ToUnix(o.CloseTime), o.OpenPrice, o.ClosePrice,
                     o.StopLoss, o.TakeProfit, o.Commission, o.Swap, o.Lots, o.Profit, o.Profit + o.Commission + o.Swap);
-                Redis.Db.StringSet(key, value);
+                Redis.Db.StringSet(key, value, Constants.KeyTimeout);
                 Redis.Db.SetAdd(setKey, o.Ticket);
+                Redis.Db.KeyExpire(setKey, Constants.KeyTimeout);
             }
         }
 
@@ -447,7 +471,7 @@ namespace MT4Connect
                 var value = String.Format("{0:D}#{1:D}#{2:D}#{3}#{4}#{5}#{6:G}#{7:G}#{8:G}#{9:G}##{10:G}#{11:G}#{12:G}#{13:G}#{14:G}",
                     Client.User, o.Ticket, o.Type, o.Symbol, ToUnix(o.OpenTime), ToUnix(o.CloseTime), o.OpenPrice, o.ClosePrice,
                     o.StopLoss, o.TakeProfit, o.Commission, o.Swap, o.Lots, o.Profit, o.Profit + o.Commission + o.Swap);
-                Redis.Db.StringSet(key, value);
+                Redis.Db.StringSet(key, value, Constants.KeyTimeout);
                 Redis.Db.SetAdd(setKey, o.Ticket);
             }
         }
@@ -455,7 +479,7 @@ namespace MT4Connect
         private void DeleteCurrentOrder(TradingAPI.MT4Server.Order order)
         {
             Redis.Db.KeyDelete(String.Format("forex:order#{0:D}", order.Ticket));
-            Redis.Db.StringSet(String.Format("forex:deleteorder#{0:D}", order.Ticket), Client.User, TimeSpan.FromSeconds(10));
+            Redis.Db.StringSet(String.Format("forex:deleteorder#{0:D}", order.Ticket), Client.User, Constants.KeyTimeout);
             Redis.Db.SetRemove(String.Format("forex:account#{0:D}#orders", Client.User), order.Ticket);
         }
 
@@ -470,6 +494,9 @@ namespace MT4Connect
                     Round(Client.AccountEquity), Round(Client.AccountMargin), Round(Client.AccountFreeMargin), marginLevel,
                     Client.Account.currency, ServerName, Client.AccountName);
             Redis.Db.StringSet(key, value);
+            var jsonKey = String.Format("forex:accountjson#{0:D}", Client.User);
+            var json = new Nancy.Json.JavaScriptSerializer().Serialize(this.AsMT4Account());
+            Redis.Db.StringSet(jsonKey, json, Constants.KeyTimeout);
         }
 
         private double ToUnix(DateTime dateTime)
@@ -500,7 +527,7 @@ namespace MT4Connect
         }
     }
 
-    public sealed class Postgres
+    public sealed class OrdersPostgres
     {
         private static NpgsqlConnection _Conn = null;
         private static NpgsqlCommand _QueryStmt = null;
@@ -577,6 +604,355 @@ namespace MT4Connect
         }
     }
 
+    public sealed class InstructionsPostgres
+    {
+        private static NpgsqlConnection _Conn = null;
+        private static NpgsqlCommand _SelectStmt = null;
+        private static NpgsqlCommand _UpdateStmt = null;
+        private static readonly object padlock = new object();
+
+        public static NpgsqlConnection Conn
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (_Conn == null)
+                    {
+                        var connString = "Host=10.211.55.2; Username=tcp; Password=; Database=forex_mtdata";
+                        _Conn = new NpgsqlConnection(connString);
+                    }
+                    return _Conn;
+                }
+            }
+        }
+
+        public static NpgsqlCommand SelectStmt
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (_SelectStmt == null)
+                    {
+                        _SelectStmt = new NpgsqlCommand("SELECT id, login, action, symbol, order_type, volume, price, stop_loss, take_profit, comment, ticket " +
+                            "FROM instructions WHERE created_at > NOW() - INTERVAL '1 minute' AND executed_at IS NULL AND login = ANY(@login) ORDER BY created_at ASC", Conn);
+                        _SelectStmt.Parameters.Add("login", NpgsqlDbType.Array | NpgsqlDbType.Integer);
+                        _SelectStmt.Prepare();
+                    }
+                    return _SelectStmt;
+                }
+            }
+        }
+
+        public static NpgsqlCommand UpdateStmt
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (_UpdateStmt == null)
+                    {
+                        _UpdateStmt = new NpgsqlCommand("UPDATE instructions SET executed_at = NOW(), ticket = @ticket, error = @error " +
+                            "WHERE id = @id", Conn);
+                        _UpdateStmt.Parameters.Add("id", NpgsqlDbType.Bigint);
+                        _UpdateStmt.Parameters.Add("ticket", NpgsqlDbType.Integer);
+                        _UpdateStmt.Parameters.Add("error", NpgsqlDbType.Varchar);
+                        _UpdateStmt.Prepare();
+                    }
+                    return _UpdateStmt;
+                }
+            }
+        }
+    }
+
+    public class Order
+    {
+        public long Id { get; set; }
+        public uint Login { get; set; }
+        public string Action { get; set; }
+        private string _symbol;
+        public string Symbol {
+            get => _symbol;
+            set => _symbol = value.ToUpper();
+        }
+        public string OrderType { get; set; }
+        public double Price { get; set; }
+        public double Volume { get; set; }
+        public double StopLoss { get; set; }
+        public double TakeProfit { get; set; }
+        public string Comment { get; set; }
+        public long Ticket { get; set; }
+
+        public void Process()
+        {
+            try
+            {
+                if (Action == "Open")
+                {
+                    Open();
+                }
+                else if (Action == "Modify")
+                {
+                    Modify();
+                }
+                else if (Action == "Close")
+                {
+                    Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Report(ex.Message);
+            }
+        }
+
+        private void Close()
+        {
+            var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
+            var opened = TheQuoteClient.GetOpenedOrders();
+            var closed = 0;
+            for (var i = 0; i < opened.Length; i++)
+            {
+                var o = opened[i];
+                if (Ticket > 0 && Ticket != o.Ticket) continue;
+                if (Symbol != "" && Symbol != o.Symbol) continue;
+                if (OrderType != "" && TypeToOp(OrderType) != o.Type) continue;
+                if (Volume > 0 && Volume != o.Lots) continue;
+                int tried = 0;
+                while (true)
+                {
+                    try
+                    {
+                        if (o.Type == TradingAPI.MT4Server.Op.Buy || o.Type == TradingAPI.MT4Server.Op.Sell)
+                        {
+                            var task = Task.Run(() => oc.OrderClose(o.Symbol, o.Ticket, o.Lots, o.ClosePrice, 5));
+                            if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                        }
+                        else
+                        {
+                            var task = Task.Run(() => oc.OrderDelete(o.Ticket, o.Type, o.Symbol, o.Lots, o.ClosePrice));
+                            if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                        }
+                        closed++;
+                        break;
+                    }
+                    catch
+                    {
+                        tried++;
+                        if (tried > 3)
+                        {
+                            throw;
+                        }
+                        Task.Delay(TimeSpan.FromMilliseconds(200)).Wait();
+                    }
+                }
+            }
+            
+            if (closed > 0)
+            {
+                Report();
+            }
+            else
+            {
+                Report("no matches");
+            }
+            Logger.Info("{0} closed {1} orders (ID#{2})", Login, closed, Id);
+        }
+
+        private void Modify()
+        {
+            var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
+            var opened = TheQuoteClient.GetOpenedOrders();
+            var modified = 0;
+            for (var i = 0; i < opened.Length; i++)
+            {
+                var o = opened[i];
+                if (Ticket > 0 && Ticket != o.Ticket) continue;
+                if (Symbol != "" && Symbol != o.Symbol) continue;
+                if (OrderType != "" && TypeToOp(OrderType) != o.Type) continue;
+                if (Volume > 0 && Volume != o.Lots) continue;
+                if (o.Type == TradingAPI.MT4Server.Op.Buy || o.Type == TradingAPI.MT4Server.Op.Sell)
+                {
+                    Price = o.OpenPrice;
+                }
+                int tried = 0;
+                while (true)
+                {
+                    try
+                    {
+                        var pst = GetPST(getQuote: false, symbol: o.Symbol, order_type: OpToType(o.Type));
+                        if (pst.Item1 != o.OpenPrice || pst.Item2 != o.StopLoss || pst.Item3 != o.TakeProfit)
+                        {
+                            var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, pst.Item1, pst.Item2, pst.Item3, new DateTime()));
+                            if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                            modified++;
+                        }
+                        break;
+                    }
+                    catch
+                    {
+                        tried++;
+                        if (tried > 3)
+                        {
+                            throw;
+                        }
+                        Task.Delay(TimeSpan.FromMilliseconds(200)).Wait();
+                    }
+                }
+            }
+
+            if (modified > 0)
+            {
+                Report();
+            }
+            else
+            {
+                Report("no matches or changes");
+            }
+            Logger.Info("{0} modified {1} orders (ID#{2})", Login, modified, Id);
+        }
+
+        private void Open()
+        {
+            var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
+            var op = TypeToOp(OrderType);
+            TradingAPI.MT4Server.Order newOrder;
+            int tried = 0;
+            while (true)
+            {
+                try
+                {
+                    var pst = GetPST(getQuote: true);
+                    var task = Task.Run(() => oc.OrderSend(Symbol, op, Volume, pst.Item1, 5, pst.Item2, pst.Item3, Comment, 0, new DateTime()));
+                    if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                    newOrder = task.Result;
+                    break;
+                }
+                catch
+                {
+                    tried++;
+                    if (tried > 3)
+                    {
+                        throw;
+                    }
+                    Task.Delay(TimeSpan.FromMilliseconds(200)).Wait();
+                }
+            }
+            Ticket = newOrder.Ticket;
+            Report();
+            Logger.Info("{0} created order #{1} ({2},{3},{4}) (ID#{5})", Login, Ticket, Symbol, OrderType, Volume, Id);
+        }
+
+        private void Report(object error = null)
+        {
+            InstructionsPostgres.UpdateStmt.Parameters["id"].Value = Id;
+            if (Ticket > 0)
+            {
+                InstructionsPostgres.UpdateStmt.Parameters["ticket"].Value = Ticket;
+            }
+            else
+            {
+                InstructionsPostgres.UpdateStmt.Parameters["ticket"].Value = DBNull.Value;
+            }
+            if (error == null) error = DBNull.Value;
+            InstructionsPostgres.UpdateStmt.Parameters["error"].Value = error;
+            InstructionsPostgres.UpdateStmt.ExecuteNonQuery();
+        }
+
+        private Tuple<double, double, double> GetPST(bool getQuote = true, string symbol = null, string order_type = null)
+        {
+            if (symbol == null) symbol = Symbol;
+            if (order_type == null) order_type = OrderType;
+            var pips = 0.0001;
+            if (symbol.Contains("JPY") || symbol == "XAGUSD") pips = 0.01;
+            if (symbol == "XAUUSD") pips = 0.1;
+            if (getQuote)
+            {
+                while (TheQuoteClient.GetQuote(symbol) == null)
+                {
+                    Thread.Sleep(10);
+                }
+            }
+            double price = Price;
+            double stop_loss = StopLoss;
+            double take_profit = TakeProfit;
+            switch (order_type)
+            {
+                case "BUY":
+                    if (getQuote)
+                    {
+                        price = TheQuoteClient.GetQuote(symbol).Ask;
+                    }
+                    goto case "BUYLIMIT";
+                case "BUYLIMIT":
+                case "BUYSTOP":
+                    if (stop_loss != 0) stop_loss = price - stop_loss * pips;
+                    if (take_profit != 0) take_profit = price + take_profit * pips;
+                    break;
+                case "SELL":
+                    if (getQuote)
+                    {
+                        price = TheQuoteClient.GetQuote(symbol).Bid;
+                    }
+                    goto case "SELLLIMIT";
+                case "SELLLIMIT":
+                case "SELLSTOP":
+                    if (stop_loss != 0) stop_loss = price + stop_loss * pips;
+                    if (take_profit != 0) take_profit = price - take_profit * pips;
+                    break;
+            }
+            return Tuple.Create(price, stop_loss, take_profit);
+        }
+
+        private TradingAPI.MT4Server.Op TypeToOp(string type)
+        {
+            switch (type)
+            {
+                case "BUY":
+                    return TradingAPI.MT4Server.Op.Buy;
+                case "BUYLIMIT":
+                    return TradingAPI.MT4Server.Op.BuyLimit;
+                case "BUYSTOP":
+                    return TradingAPI.MT4Server.Op.BuyStop;
+                case "SELL":
+                    return TradingAPI.MT4Server.Op.Sell;
+                case "SELLLIMIT":
+                    return TradingAPI.MT4Server.Op.SellLimit;
+                case "SELLSTOP":
+                    return TradingAPI.MT4Server.Op.SellStop;
+                default:
+                    throw new Exception("unknown order type");
+            }
+        }
+
+        private string OpToType(TradingAPI.MT4Server.Op op)
+        {
+            switch (op)
+            {
+                case TradingAPI.MT4Server.Op.Buy:
+                    return "BUY";
+                case TradingAPI.MT4Server.Op.BuyLimit:
+                    return "BUYLIMIT";
+                case TradingAPI.MT4Server.Op.BuyStop:
+                    return "BUYSTOP";
+                case TradingAPI.MT4Server.Op.Sell:
+                    return "SELL";
+                case TradingAPI.MT4Server.Op.SellLimit:
+                    return "SELLLIMIT";
+                case TradingAPI.MT4Server.Op.SellStop:
+                    return "SELLSTOP";
+                default:
+                    throw new Exception("unknown order type");
+            }
+        }
+
+        private TradingAPI.MT4Server.QuoteClient TheQuoteClient
+        {
+            get => Current.Accounts[Login].Client;
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -585,9 +961,12 @@ namespace MT4Connect
             {
                 throw new Exception("Failed to connect redis");
             }
-            Postgres.Conn.Open();
+            OrdersPostgres.Conn.Open();
+            InstructionsPostgres.Conn.Open();
+            Update();
             var exitEvent = new ManualResetEvent(false);
-            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e)
+            {
                 e.Cancel = true;
                 exitEvent.Set();
             };
@@ -598,15 +977,74 @@ namespace MT4Connect
             var listen = "localhost:1234";
             if (args.Length > 0) listen = args[0];
             if (!listen.StartsWith("http://")) listen = "http://" + listen;
-            Console.WriteLine(listen);
             Uri uri = new Uri(listen);
             var host = new NancyHost(hostConfigs, uri);
             host.Start();
-            Console.WriteLine("Listening to {0}", listen);
+            Logger.Info("Listening to {0}", listen);
             exitEvent.WaitOne();
-            Postgres.Conn.Close();
+            InstructionsPostgres.Conn.Close();
+            OrdersPostgres.Conn.Close();
             Redis.Db.Multiplexer.Close();
-            Console.WriteLine("Goodbye!");
+            Logger.Info("Goodbye!");
+        }
+
+        private static void Update()
+        {
+            var redisTimer = new System.Timers.Timer(500);
+            redisTimer.Elapsed += (_, e) =>
+            {
+                foreach (KeyValuePair<uint, FXClient> account in Current.Accounts)
+                {
+                    var jsonKey = String.Format("forex:accountjson#{0:D}", account.Key);
+                    var setKey = String.Format("forex:account#{0:D}#orders", account.Key);
+                    Redis.Db.KeyExpire(jsonKey, Constants.KeyTimeout);
+                    Redis.Db.KeyExpire(setKey, Constants.KeyTimeout);
+                    var items = Redis.Db.SetMembers(setKey);
+                    for (var i = 0; i < items.Length; i++)
+                    {
+                        Redis.Db.KeyExpire(String.Format("forex:order#{0:D}", items[i]), Constants.KeyTimeout);
+                    }
+                }
+            };
+            redisTimer.Start();
+
+            var pgTimer = new System.Timers.Timer(200);
+            pgTimer.Elapsed += (_, e) =>
+            {
+                if (Current.Accounts.Count == 0) return;
+                pgTimer.Stop();
+                var orders = new List<Order>();
+                InstructionsPostgres.SelectStmt.Parameters["login"].Value = Current.Accounts.Keys.ToArray();
+                using (var reader = InstructionsPostgres.SelectStmt.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        orders.Add(new Order()
+                        {
+                            Id = reader.GetInt64(0),
+                            Login = Convert.ToUInt32(reader.GetInt32(1)),
+                            Action = reader.GetString(2),
+                            Symbol = reader.IsDBNull(3) ? string.Empty: reader.GetString(3),
+                            OrderType = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                            Volume = reader.IsDBNull(5) ? 0 : Convert.ToDouble(reader.GetDecimal(5)),
+                            Price = reader.IsDBNull(6) ? 0 : Convert.ToDouble(reader.GetDecimal(6)),
+                            StopLoss = reader.IsDBNull(7) ? 0 : Convert.ToDouble(reader.GetDecimal(7)),
+                            TakeProfit = reader.IsDBNull(8) ? 0 : Convert.ToDouble(reader.GetDecimal(8)),
+                            Comment = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                            Ticket = reader.IsDBNull(10) ? 0 : reader.GetInt64(10)
+                        });
+                    }
+                }
+                if (orders.Count > 0)
+                {
+                    orders.ForEach((order) =>
+                    {
+                        order.Process();
+                    });
+                }
+                pgTimer.Start();
+            };
+            pgTimer.Start();
         }
     }
 }
