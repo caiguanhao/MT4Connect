@@ -210,6 +210,7 @@ namespace MT4Connect
             // but orders returned are sorted by open_time asc
             var orders = Client.DownloadOrderHistory(from, DateTime.Now);
             var size = orders.Length;
+            Logger.Info("{0} downloaded {1} histories", Client.User, size);
             var inserted = 0;
             for (var i = 0; i < size; i++)
             {
@@ -273,20 +274,35 @@ namespace MT4Connect
             Redis.Db.SetRemove(String.Format("forex:account#{0:D}#orders", Client.User), order.Ticket);
         }
 
+        private double prevEquity;
+        private readonly object l1 = new object();
+
         private void UpdateAccount()
         {
-            var key = String.Format("forex:account#{0:D}", Client.User);
-            var marginLevel = 0.0;
-            if (Client.AccountMargin > 0) marginLevel = Round(Client.AccountEquity / Client.AccountMargin * 100);
-            var value = String.Format("{0:D}#{1:D}#{2:D}#{3:D}#{4:G}#{5:G}#{6:G}#{7:G}#{8:G}#{9:G}#{10:G}#{11}#{12}#{13}",
+            lock (l1)
+            {
+                if (prevEquity == Client.AccountEquity) return;
+                prevEquity = Client.AccountEquity;
+                var key = String.Format("forex:account#{0:D}", Client.User);
+
+                // deprecated:
+                var marginLevel = 0.0;
+                if (Client.AccountMargin > 0) marginLevel = Round(Client.AccountEquity / Client.AccountMargin * 100);
+                var value = String.Format("{0:D}#{1:D}#{2:D}#{3:D}#{4:G}#{5:G}#{6:G}#{7:G}#{8:G}#{9:G}#{10:G}#{11}#{12}#{13}",
                     Client.User, Client.IsDemoAccount ? 0 : 2, Client.AccountLeverage, Client.Account.maxpositions,
                     Round(Client.AccountBalance), Round(Client.AccountCredit), Round(Client.AccountProfit),
                     Round(Client.AccountEquity), Round(Client.AccountMargin), Round(Client.AccountFreeMargin), marginLevel,
                     Client.Account.currency, ServerName, Client.AccountName);
-            Redis.Db.StringSet(key, value);
-            var jsonKey = String.Format("forex:accountjson#{0:D}", Client.User);
-            var json = new Nancy.Json.JavaScriptSerializer().Serialize(this.AsMT4Account());
-            Redis.Db.StringSet(jsonKey, json, Constants.KeyTimeout);
+
+                // new:
+                // var value = String.Format("{0:D}#{1:G}#{2:G}#{3:G}",
+                //        Client.User, Round(Client.AccountBalance), Round(Client.AccountEquity), Round(Client.AccountMargin));
+
+                Redis.Db.StringSet(key, value);
+                var jsonKey = String.Format("forex:accountjson#{0:D}", Client.User);
+                var json = new Nancy.Json.JavaScriptSerializer().Serialize(this.AsMT4Account());
+                Redis.Db.StringSet(jsonKey, json, Constants.KeyTimeout);
+            }
         }
 
         private double ToUnix(DateTime dateTime)
