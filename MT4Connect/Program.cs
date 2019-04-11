@@ -8,6 +8,7 @@ namespace MT4Connect
     {
         public static TimeSpan KeyTimeout = TimeSpan.FromSeconds(2);
         public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(2);
+        public static string ConfigsFile = "configs.json";
     }
 
     public class Logger
@@ -16,31 +17,10 @@ namespace MT4Connect
         {
             Console.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
         }
-        
+
         public static void Info(string format, params object[] arg)
         {
             Console.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
-        }
-    }
-
-    public sealed class Current
-    {
-        private static FXClients _accounts;
-        private static readonly object padlock = new object();
-
-        public static FXClients Accounts
-        {
-            get
-            {
-                lock (padlock)
-                {
-                    if (_accounts == null)
-                    {
-                        _accounts = new FXClients { };
-                    }
-                    return _accounts;
-                }
-            }
         }
     }
 
@@ -72,8 +52,7 @@ namespace MT4Connect
             {
                 UrlReservations = new UrlReservations() { CreateAutomatically = true }
             };
-            var listen = "localhost:1234";
-            if (args.Length > 0) listen = args[0];
+            var listen = Current.Configs.Listen;
             if (!listen.StartsWith("http://")) listen = "http://" + listen;
             Uri uri = new Uri(listen);
             var host = new NancyHost(hostConfigs, uri);

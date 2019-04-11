@@ -17,8 +17,8 @@ namespace MT4Connect
                 {
                     if (_Db == null)
                     {
-                        ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("10.211.55.2,abortConnect=false");
-                        _Db = redis.GetDatabase(15);
+                        ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(Current.Configs.Redis);
+                        _Db = redis.GetDatabase(Current.Configs.RedisDatabase);
                     }
                     return _Db;
                 }

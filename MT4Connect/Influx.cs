@@ -16,7 +16,7 @@ namespace MT4Connect
             {
                 if (running) return;
                 running = true;
-                var influxClient = new LineProtocolClient(new Uri("http://10.211.55.2:8086"), "forex");
+                var influxClient = new LineProtocolClient(new Uri(Current.Configs.InfluxAddress), Current.Configs.InfluxDatabase);
                 var influxTimer = new System.Timers.Timer(1000);
                 influxTimer.Elapsed += (_, e) =>
                 {

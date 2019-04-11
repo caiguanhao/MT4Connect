@@ -73,8 +73,7 @@ namespace MT4Connect
                 {
                     if (_Conn == null)
                     {
-                        var connString = "Host=10.211.55.2; Username=tcp; Password=; Database=forex_mtdata";
-                        _Conn = new NpgsqlConnection(connString);
+                        _Conn = new NpgsqlConnection(Current.Configs.Postgres);
                     }
                     return _Conn;
                 }
