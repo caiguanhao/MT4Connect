@@ -111,4 +111,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>mkdir "$(TargetDir)\lib\"
+move "$(TargetDir)\*.dll" "$(TargetDir)\lib\" &gt;nul</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>rmdir "$(TargetDir)\lib\" /s /q</PreBuildEvent>
+  </PropertyGroup>
 </Project>
