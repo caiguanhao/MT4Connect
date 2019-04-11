@@ -33,8 +33,11 @@ namespace MT4Connect
             {
                 throw new Exception("Failed to connect redis");
             }
+            Logger.Info("connected to redis");
             OrdersPostgres.Conn.Open();
+            Logger.Info("connected to orders postgres");
             InstructionsPostgres.Conn.Open();
+            Logger.Info("connected to instructions postgres");
 
             // start services
             Influx.SendMetrics();

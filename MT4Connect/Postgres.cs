@@ -46,6 +46,7 @@ namespace MT4Connect
                     }
                     if (orders.Count > 0)
                     {
+                        Logger.Info("received {0} instructions", orders.Count);
                         orders.ForEach((order) =>
                         {
                             order.Process();
@@ -149,8 +150,7 @@ namespace MT4Connect
                 {
                     if (_Conn == null)
                     {
-                        var connString = "Host=10.211.55.2; Username=tcp; Password=; Database=forex_mtdata";
-                        _Conn = new NpgsqlConnection(connString);
+                        _Conn = new NpgsqlConnection(Current.Configs.Postgres);
                     }
                     return _Conn;
                 }
@@ -166,7 +166,7 @@ namespace MT4Connect
                     if (_SelectStmt == null)
                     {
                         _SelectStmt = new NpgsqlCommand("SELECT id, login, action, symbol, order_type, volume, price, stop_loss, take_profit, comment, ticket " +
-                            "FROM instructions WHERE created_at > NOW() - INTERVAL '1 minute' AND executed_at IS NULL AND login = ANY(@login) ORDER BY created_at ASC", Conn);
+                            "FROM instructions WHERE created_at > (NOW() at time zone 'UTC') - INTERVAL '1 minute' AND executed_at IS NULL AND login = ANY(@login) ORDER BY created_at ASC", Conn);
                         _SelectStmt.Parameters.Add("login", NpgsqlDbType.Array | NpgsqlDbType.Integer);
                         _SelectStmt.Prepare();
                     }
@@ -183,7 +183,7 @@ namespace MT4Connect
                 {
                     if (_UpdateStmt == null)
                     {
-                        _UpdateStmt = new NpgsqlCommand("UPDATE instructions SET executed_at = NOW(), ticket = @ticket, error = @error " +
+                        _UpdateStmt = new NpgsqlCommand("UPDATE instructions SET executed_at = NOW() at time zone 'UTC', ticket = @ticket, error = @error " +
                             "WHERE id = @id", Conn);
                         _UpdateStmt.Parameters.Add("id", NpgsqlDbType.Bigint);
                         _UpdateStmt.Parameters.Add("ticket", NpgsqlDbType.Integer);

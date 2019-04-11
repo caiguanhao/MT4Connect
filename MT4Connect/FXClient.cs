@@ -180,8 +180,8 @@ namespace MT4Connect
             OrdersPostgres.InsertStmt.Parameters["ticket"].Value = (long)order.Ticket;
             OrdersPostgres.InsertStmt.Parameters["order_type"].Value = (short)order.Type;
             OrdersPostgres.InsertStmt.Parameters["symbol"].Value = order.Symbol;
-            OrdersPostgres.InsertStmt.Parameters["open_time"].Value = order.OpenTime.AddSeconds(-7200); // convert UTC+2 to UTC
-            OrdersPostgres.InsertStmt.Parameters["close_time"].Value = order.CloseTime.AddSeconds(-7200); // convert UTC+2 to UTC
+            OrdersPostgres.InsertStmt.Parameters["open_time"].Value = ToUTC(order.OpenTime);
+            OrdersPostgres.InsertStmt.Parameters["close_time"].Value = ToUTC(order.CloseTime);
             OrdersPostgres.InsertStmt.Parameters["open_price"].Value = order.OpenPrice;
             OrdersPostgres.InsertStmt.Parameters["close_price"].Value = order.ClosePrice;
             OrdersPostgres.InsertStmt.Parameters["stop_loss"].Value = order.StopLoss;
@@ -241,7 +241,7 @@ namespace MT4Connect
                 var o = opened[i];
                 var key = String.Format("forex:order#{0:D}", o.Ticket);
                 var value = String.Format("{0:D}#{1:D}#{2:D}#{3}#{4}#{5}#{6:G}#{7:G}#{8:G}#{9:G}##{10:G}#{11:G}#{12:G}#{13:G}#{14:G}",
-                    Client.User, o.Ticket, o.Type, o.Symbol, ToUnix(o.OpenTime), ToUnix(o.CloseTime), o.OpenPrice, o.ClosePrice,
+                    Client.User, o.Ticket, o.Type, o.Symbol, ToUnix(ToUTC(o.OpenTime)), 0, o.OpenPrice, o.ClosePrice,
                     o.StopLoss, o.TakeProfit, o.Commission, o.Swap, o.Lots, o.Profit, o.Profit + o.Commission + o.Swap);
                 Redis.Db.StringSet(key, value, Constants.KeyTimeout);
                 Redis.Db.SetAdd(setKey, o.Ticket);
@@ -259,7 +259,7 @@ namespace MT4Connect
                 if (o.Symbol != Symbol) continue;
                 var key = String.Format("forex:order#{0:D}", o.Ticket);
                 var value = String.Format("{0:D}#{1:D}#{2:D}#{3}#{4}#{5}#{6:G}#{7:G}#{8:G}#{9:G}##{10:G}#{11:G}#{12:G}#{13:G}#{14:G}",
-                    Client.User, o.Ticket, o.Type, o.Symbol, ToUnix(o.OpenTime), ToUnix(o.CloseTime), o.OpenPrice, o.ClosePrice,
+                    Client.User, o.Ticket, o.Type, o.Symbol, ToUnix(ToUTC(o.OpenTime)), 0, o.OpenPrice, o.ClosePrice,
                     o.StopLoss, o.TakeProfit, o.Commission, o.Swap, o.Lots, o.Profit, o.Profit + o.Commission + o.Swap);
                 Redis.Db.StringSet(key, value, Constants.KeyTimeout);
                 Redis.Db.SetAdd(setKey, o.Ticket);
@@ -292,6 +292,47 @@ namespace MT4Connect
         private double ToUnix(DateTime dateTime)
         {
             return (dateTime - new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc)).TotalSeconds;
+        }
+
+        private static readonly Dictionary<int, int> dstStarts = new Dictionary<int, int>
+        {
+            { 2001, 25 }, { 2002, 31 }, { 2003, 30 }, { 2004, 28 }, { 2005, 27 },
+            { 2006, 26 }, { 2007, 25 }, { 2008, 30 }, { 2009, 29 }, { 2010, 28 },
+            { 2011, 27 }, { 2012, 25 }, { 2013, 31 }, { 2014, 30 }, { 2015, 29 },
+            { 2016, 27 }, { 2017, 26 }, { 2018, 25 }, { 2019, 31 }, { 2020, 29 },
+            { 2021, 28 }, { 2022, 27 }, { 2023, 26 }, { 2024, 31 }, { 2025, 30 },
+            { 2026, 29 }, { 2027, 28 }, { 2028, 26 }, { 2029, 25 }, { 2030, 31 },
+            { 2031, 30 }, { 2032, 28 }, { 2033, 27 }, { 2034, 26 }, { 2035, 25 },
+            { 2036, 30 }, { 2037, 29 }, { 2038, 28 }, { 2039, 27 }, { 2040, 25 },
+            { 2041, 31 }, { 2042, 30 }, { 2043, 29 }, { 2044, 27 }, { 2045, 26 },
+            { 2046, 25 }, { 2047, 31 }, { 2048, 29 }, { 2049, 28 }, { 2050, 27 },
+        };
+
+        private static readonly Dictionary<int, int> dstEnds = new Dictionary<int, int>
+        {
+            { 2001, 28 }, { 2002, 27 }, { 2003, 26 }, { 2004, 31 }, { 2005, 30 },
+            { 2006, 29 }, { 2007, 28 }, { 2008, 26 }, { 2009, 25 }, { 2010, 31 },
+            { 2011, 30 }, { 2012, 28 }, { 2013, 27 }, { 2014, 26 }, { 2015, 25 },
+            { 2016, 30 }, { 2017, 29 }, { 2018, 28 }, { 2019, 27 }, { 2020, 25 },
+            { 2021, 31 }, { 2022, 30 }, { 2023, 29 }, { 2024, 27 }, { 2025, 26 },
+            { 2026, 25 }, { 2027, 31 }, { 2028, 29 }, { 2029, 28 }, { 2030, 27 },
+            { 2031, 26 }, { 2032, 31 }, { 2033, 30 }, { 2034, 29 }, { 2035, 28 },
+            { 2036, 26 }, { 2037, 25 }, { 2038, 31 }, { 2039, 30 }, { 2040, 28 },
+            { 2041, 27 }, { 2042, 26 }, { 2043, 25 }, { 2044, 30 }, { 2045, 29 },
+            { 2046, 28 }, { 2047, 27 }, { 2048, 25 }, { 2049, 31 }, { 2050, 30 },
+        };
+
+        private bool IsSummer(DateTime dt)
+        {
+            if (dt.Month == 3) return dt.Day > dstStarts[dt.Year];
+            if (dt.Month == 10) return dt.Day < dstEnds[dt.Year];
+            if (dt.Month > 3 && dt.Month < 10) return true;
+            return false;
+        }
+
+        private DateTime ToUTC(DateTime dt)
+        {
+            return dt.AddHours(IsSummer(dt) ? -3 : -2);
         }
     }
 }
