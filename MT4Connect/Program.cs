@@ -28,6 +28,8 @@ namespace MT4Connect
     {
         static void Main(string[] args)
         {
+            DisableQuickEdit();
+
             // start connections
             if (!Redis.Db.Multiplexer.IsConnected)
             {
@@ -64,10 +66,43 @@ namespace MT4Connect
             exitEvent.WaitOne();
 
             // close connections
+            host.Stop();
             InstructionsPostgres.Conn.Close();
             OrdersPostgres.Conn.Close();
             Redis.Db.Multiplexer.Close();
             Logger.Info("Goodbye!");
+        }
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern IntPtr GetStdHandle(int handle);
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out int lpMode);
+
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, int ioMode);
+
+        private const int QuickEditMode = 64;
+        private const int ExtendedFlags = 128;
+        private const int STD_INPUT_HANDLE = -10;
+
+        private static void DisableQuickEdit()
+        {
+            var conHandle = GetStdHandle(STD_INPUT_HANDLE);
+            if (!GetConsoleMode(conHandle, out int mode))
+            {
+                Logger.Info("Failed to get console mode");
+                return;
+            }
+            mode = mode & ~(QuickEditMode | ExtendedFlags);
+            if (SetConsoleMode(conHandle, mode))
+            {
+                Logger.Info("Successfully disabled quick edit mode");
+            }
+            else
+            {
+                Logger.Info("Failed to disable quick edit mode");
+            }
         }
     }
 }

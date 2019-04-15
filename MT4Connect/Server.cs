@@ -52,6 +52,8 @@ namespace MT4Connect
             public string ServerName { get; set; }
             public string Host { get; set; }
             public int Port { get; set; }
+            public bool MoveStopLoss { get; set; }
+            public bool AddToLosingPosition { get; set; }
         }
 
         static Task<PingReply> PingAsync(string address)
@@ -125,6 +127,8 @@ namespace MT4Connect
                     }
                     Logger.Info("Connecting to {0}...", account.Login);
                     var client = new FXClient(account.Login, account.Password, account.ServerName, account.Host, account.Port);
+                    client.AddToLosingPosition = account.AddToLosingPosition;
+                    client.MoveStopLoss = account.MoveStopLoss;
                     client.Connect();
                     if (client.IsMaster())
                     {

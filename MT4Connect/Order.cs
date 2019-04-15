@@ -4,6 +4,12 @@ using System.Threading.Tasks;
 
 namespace MT4Connect
 {
+    public class ProcessTimedOutException : Exception
+    {
+        public ProcessTimedOutException() : base("timed out")
+        {
+        }
+    }
 
     public class Order
     {
@@ -71,17 +77,21 @@ namespace MT4Connect
                         if (o.Type == TradingAPI.MT4Server.Op.Buy || o.Type == TradingAPI.MT4Server.Op.Sell)
                         {
                             var task = Task.Run(() => oc.OrderClose(o.Symbol, o.Ticket, o.Lots, o.ClosePrice, 5));
-                            if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                            if (!task.Wait(Constants.CommandTimeout)) throw new ProcessTimedOutException();
                         }
                         else
                         {
                             var task = Task.Run(() => oc.OrderDelete(o.Ticket, o.Type, o.Symbol, o.Lots, o.ClosePrice));
-                            if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                            if (!task.Wait(Constants.CommandTimeout)) throw new ProcessTimedOutException();
                         }
                         closed++;
                         break;
                     }
-                    catch
+                    catch (ProcessTimedOutException)
+                    {
+                        throw;
+                    }
+                    catch (Exception)
                     {
                         tried++;
                         if (tried > 3)
@@ -129,12 +139,16 @@ namespace MT4Connect
                         if (pst.Item1 != o.OpenPrice || pst.Item2 != o.StopLoss || pst.Item3 != o.TakeProfit)
                         {
                             var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, pst.Item1, pst.Item2, pst.Item3, new DateTime()));
-                            if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                            if (!task.Wait(Constants.CommandTimeout)) throw new ProcessTimedOutException();
                             modified++;
                         }
                         break;
                     }
-                    catch
+                    catch (ProcessTimedOutException)
+                    {
+                        throw;
+                    }
+                    catch (Exception)
                     {
                         tried++;
                         if (tried > 3)
@@ -169,11 +183,15 @@ namespace MT4Connect
                 {
                     var pst = GetPST(getQuote: true);
                     var task = Task.Run(() => oc.OrderSend(Symbol, op, Volume, pst.Item1, 5, pst.Item2, pst.Item3, Comment, 0, new DateTime()));
-                    if (!task.Wait(Constants.CommandTimeout)) throw new Exception("timed out");
+                    if (!task.Wait(Constants.CommandTimeout)) throw new ProcessTimedOutException();
                     newOrder = task.Result;
                     break;
                 }
-                catch
+                catch (ProcessTimedOutException)
+                {
+                    throw;
+                }
+                catch (Exception)
                 {
                     tried++;
                     if (tried > 3)
