@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MT4Connect
@@ -52,6 +51,7 @@ namespace MT4Connect
 
         private string ServerName { get; set; }
         private System.Timers.Timer ReconnectTimer;
+        private System.Timers.Timer ModifyTimer;
 
         public FXClient(uint login, string password, string serverName, string host, int port)
         {
@@ -76,6 +76,11 @@ namespace MT4Connect
                     }
                 };
                 ReconnectTimer.Start();
+                if (ModifyTimer != null)
+                {
+                    ModifyTimer.Stop();
+                    ModifyTimer.Dispose();
+                }
             };
             Client.OnConnect += (_, e) =>
             {
@@ -89,6 +94,7 @@ namespace MT4Connect
                 {
                     if (ReconnectTimer != null)
                     {
+                        ReconnectTimer.Stop();
                         ReconnectTimer.Dispose();
                     }
                     var features = "";
@@ -98,6 +104,30 @@ namespace MT4Connect
                     UpdateAccount();
                     UpdateCurrentOrders();
                     InsertHistoryOrders();
+
+                    if (ModifyTimer != null)
+                    {
+                        ModifyTimer.Stop();
+                        ModifyTimer.Dispose();
+                    }
+                    ModifyTimer = new System.Timers.Timer(500);
+                    ModifyTimer.Elapsed += (__, ee) =>
+                    {
+                        ModifyTimer.Stop();
+                        try
+                        {
+                            DynamicallyUpdateOrders();
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Info("{0} Error {1}", Client.User, ex.Message);
+                        }
+                        finally
+                        {
+                            ModifyTimer.Start();
+                        }
+                    };
+                    ModifyTimer.Start();
                 }
             };
             Client.OnOrderUpdate += (_, e) =>
@@ -126,8 +156,6 @@ namespace MT4Connect
                 if (!IsMaster()) return;
                 UpdateAccount();
                 UpdateCurrentOrder(e.Symbol);
-                DynamicallyUpdateStopLoss(e.Symbol);
-                DynamicallyAddOrders(e.Symbol);
             };
         }
 
@@ -326,126 +354,116 @@ namespace MT4Connect
             }
         }
 
-        private readonly object l2 = new object();
-        private void DynamicallyUpdateStopLoss(string symbol)
+        private void DynamicallyUpdateOrders()
         {
-            if (!MoveStopLoss) return;
-            lock (l2)
+            if (!MoveStopLoss && !AddToLosingPosition) return;
+            var opened = Client.GetOpenedOrders();
+            for (var i = 0; i < opened.Length; i++)
             {
-                var oc = new TradingAPI.MT4Server.OrderClient(Client);
-                var opened = Client.GetOpenedOrders();
-                for (var i = 0; i < opened.Length; i++)
-                {
-                    var o = opened[i];
-                    if (o.Symbol != symbol) continue;
-                    if (o.StopLoss == 0) continue;
-                    var mul = 10000;
-                    if (symbol.Contains("JPY") || symbol == "XAGUSD") mul = 100;
-                    if (symbol == "XAUUSD") mul = 10;
-                    var currentPips = 0.0;
-                    var currentStopLoss = 0.0;
-                    if (o.Type == TradingAPI.MT4Server.Op.Buy)
-                    {
-                        currentPips = (o.ClosePrice - o.OpenPrice) * mul;
-                        currentStopLoss = (o.StopLoss - o.OpenPrice) * mul; // should be negative at first, positive when winning
-                    }
-                    else if (o.Type == TradingAPI.MT4Server.Op.Sell)
-                    {
-                        currentPips = (o.OpenPrice - o.ClosePrice) * mul;
-                        currentStopLoss = (o.OpenPrice - o.StopLoss) * mul; // should be negative at first, positive when winning
-                    }
-                    if (currentPips < 10)
-                    {
-                        continue;
-                    }
-                    var targetStopLoss = 0.0;
-                    if (currentPips < 20)
-                    {
-                        targetStopLoss = 5; // should always be positive
-                    }
-                    else
-                    {
-                        targetStopLoss = (Math.Floor(currentPips / 10.0) - 1) * 10; // should always be positive
-                    }
-                    if (targetStopLoss <= currentStopLoss)
-                    {
-                        continue;
-                    }
-                    var sl = o.StopLoss;
-                    if (o.Type == TradingAPI.MT4Server.Op.Buy)
-                    {
-                        sl = o.OpenPrice + targetStopLoss / mul; // should be greater than open price
-                    }
-                    else if (o.Type == TradingAPI.MT4Server.Op.Sell)
-                    {
-                        sl = o.OpenPrice - targetStopLoss / mul; // should be less than open price
-                    }
-                    var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, o.OpenPrice, sl, o.TakeProfit, new DateTime()));
-                    if (task.Wait(Constants.CommandTimeout))
-                    {
-                        Logger.Info("{0} moved stop loss of {1} to {2}", Client.User, o.Ticket, targetStopLoss);
-                    }
-                    else
-                    {
-                        Logger.Info("{0} timed out moving stop loss of order #{1}", Client.User, o.Ticket);
-                    }
-                }
+                var o = opened[i];
+                if (MoveStopLoss) DynamicallyUpdateStopLoss(o);
+                if (AddToLosingPosition) DynamicallyAddOrders(o);
             }
         }
 
-        private readonly object l3 = new object();
-        private void DynamicallyAddOrders(string symbol)
+        private void DynamicallyUpdateStopLoss(TradingAPI.MT4Server.Order o)
         {
-            if (!AddToLosingPosition) return;
-            lock (l3)
+            if (o.StopLoss == 0) return;
+            var mul = 10000;
+            if (o.Symbol.Contains("JPY") || o.Symbol == "XAGUSD") mul = 100;
+            if (o.Symbol == "XAUUSD") mul = 10;
+            var currentPips = 0.0;
+            var currentStopLoss = 0.0;
+            if (o.Type == TradingAPI.MT4Server.Op.Buy)
             {
-                var oc = new TradingAPI.MT4Server.OrderClient(Client);
-                var opened = Client.GetOpenedOrders();
-                for (var i = 0; i < opened.Length; i++)
-                {
-                    var o = opened[i];
-                    if (o.Comment.Contains("[LP]")) continue;
-                    if (o.Symbol != symbol) continue;
-                    if (o.StopLoss == 0) continue;
-                    var mul = 10000;
-                    if (symbol.Contains("JPY") || symbol == "XAGUSD") mul = 100;
-                    if (symbol == "XAUUSD") mul = 10;
-                    var currentPips = 0.0;
-                    var remainingStopLoss = 0.0;
-                    if (o.Type == TradingAPI.MT4Server.Op.Buy)
-                    {
-                        currentPips = (o.ClosePrice - o.OpenPrice) * mul;
-                        remainingStopLoss = (o.ClosePrice - o.StopLoss) * mul; // should be positive
-                    }
-                    else if (o.Type == TradingAPI.MT4Server.Op.Sell)
-                    {
-                        currentPips = (o.OpenPrice - o.ClosePrice) * mul;
-                        remainingStopLoss = (o.StopLoss - o.ClosePrice) * mul; // should be positive
-                    }
-                    if (currentPips > -20 || remainingStopLoss < 30)
-                    {
-                        // ignore if current order is not losing enough or close to the stop loss point
-                        continue;
-                    }
-                    var lvl = (int)Math.Floor((currentPips * -1) / 20);
-                    var identifier = String.Format("[LP-{0}]", lvl);
-                    if (HasOrder(o.Symbol, o.Type, identifier))
-                    {
-                        continue;
-                    }
-                    var task = Task.Run(() => oc.OrderSend(o.Symbol, o.Type, o.Lots, o.ClosePrice, 5, o.StopLoss, o.TakeProfit, o.Comment + "[LP]" + identifier, 0, new DateTime()));
-                    if (task.Wait(Constants.CommandTimeout))
-                    {
-                        var newOrder = task.Result;
-                        Logger.Info("{0} added order #{1} to losing position {2}", Client.User, newOrder.Ticket, newOrder.Symbol);
-                    }
-                    else
-                    {
-                        Logger.Info("{0} timed out adding order", Client.User);
-                        AddToLosingPosition = false;
-                        Logger.Info("{0} temporarily disabled AddToLosingPosition", Client.User);
-                    }
-                }
+                currentPips = (o.ClosePrice - o.OpenPrice) * mul;
+                currentStopLoss = (o.StopLoss - o.OpenPrice) * mul; // should be negative at first, positive when winning
+            }
+            else if (o.Type == TradingAPI.MT4Server.Op.Sell)
+            {
+                currentPips = (o.OpenPrice - o.ClosePrice) * mul;
+                currentStopLoss = (o.OpenPrice - o.StopLoss) * mul; // should be negative at first, positive when winning
+            }
+            if (currentPips < Constants.MSLMinPips)
+            {
+                return;
+            }
+            var targetStopLoss = 0.0;
+            if (currentPips < Constants.MSLFirstLevelPips)
+            {
+                targetStopLoss = Constants.MSLFirstLevelSL; // should always be positive
+            }
+            else
+            {
+                targetStopLoss = (Math.Floor(currentPips / Constants.MSLOtherLevelSLGap) - 1) * Constants.MSLOtherLevelSLGap; // should always be positive
+            }
+            if (targetStopLoss <= currentStopLoss)
+            {
+                return;
+            }
+            var sl = o.StopLoss;
+            if (o.Type == TradingAPI.MT4Server.Op.Buy)
+            {
+                sl = o.OpenPrice + targetStopLoss / mul; // should be greater than open price
+            }
+            else if (o.Type == TradingAPI.MT4Server.Op.Sell)
+            {
+                sl = o.OpenPrice - targetStopLoss / mul; // should be less than open price
+            }
+            var oc = new TradingAPI.MT4Server.OrderClient(Client);
+            var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, o.OpenPrice, sl, o.TakeProfit, new DateTime()));
+            if (task.Wait(Constants.CommandTimeout))
+            {
+                Logger.Info("{0} moved stop loss of {1} from {2} to {3}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
+            }
+            else
+            {
+                Logger.Info("{0} timed out moving stop loss of order #{1} from {2} to {3}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
+            }
+        }
+
+        private void DynamicallyAddOrders(TradingAPI.MT4Server.Order o)
+        {
+            if (o.Comment.Contains("[LP]")) return;
+            if (o.StopLoss == 0) return;
+            var mul = 10000;
+            if (o.Symbol.Contains("JPY") || o.Symbol == "XAGUSD") mul = 100;
+            if (o.Symbol == "XAUUSD") mul = 10;
+            var currentPips = 0.0;
+            var remainingStopLoss = 0.0;
+            if (o.Type == TradingAPI.MT4Server.Op.Buy)
+            {
+                currentPips = (o.ClosePrice - o.OpenPrice) * mul;
+                remainingStopLoss = (o.ClosePrice - o.StopLoss) * mul; // should be positive
+            }
+            else if (o.Type == TradingAPI.MT4Server.Op.Sell)
+            {
+                currentPips = (o.OpenPrice - o.ClosePrice) * mul;
+                remainingStopLoss = (o.StopLoss - o.ClosePrice) * mul; // should be positive
+            }
+            if (currentPips > (-1 * Constants.LPPipsGap) || remainingStopLoss < (Constants.LPPipsGap + 10))
+            {
+                // ignore if current order is not losing enough or close to the stop loss point
+                return;
+            }
+            var lvl = (int)Math.Floor((currentPips * -1) / Constants.LPPipsGap);
+            var identifier = String.Format("[LP-{0}]", lvl);
+            if (HasOrder(o.Symbol, o.Type, identifier))
+            {
+                return;
+            }
+            var oc = new TradingAPI.MT4Server.OrderClient(Client);
+            var task = Task.Run(() => oc.OrderSend(o.Symbol, o.Type, o.Lots, o.ClosePrice, 5, o.StopLoss, o.TakeProfit, o.Comment + "[LP]" + identifier, 0, new DateTime()));
+            if (task.Wait(Constants.CommandTimeout))
+            {
+                var newOrder = task.Result;
+                Logger.Info("{0} added order #{1} to losing position {2}", Client.User, newOrder.Ticket, newOrder.Symbol);
+            }
+            else
+            {
+                Logger.Info("{0} timed out adding order", Client.User);
+                AddToLosingPosition = false;
+                Logger.Info("{0} temporarily disabled AddToLosingPosition", Client.User);
             }
         }
 
