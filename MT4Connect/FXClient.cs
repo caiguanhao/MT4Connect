@@ -338,6 +338,7 @@ namespace MT4Connect
                 {
                     var o = opened[i];
                     if (o.Symbol != symbol) continue;
+                    if (o.StopLoss == 0) continue;
                     var mul = 10000;
                     if (symbol.Contains("JPY") || symbol == "XAGUSD") mul = 100;
                     if (symbol == "XAUUSD") mul = 10;
@@ -405,6 +406,7 @@ namespace MT4Connect
                     var o = opened[i];
                     if (o.Comment.Contains("[LP]")) continue;
                     if (o.Symbol != symbol) continue;
+                    if (o.StopLoss == 0) continue;
                     var mul = 10000;
                     if (symbol.Contains("JPY") || symbol == "XAGUSD") mul = 100;
                     if (symbol == "XAUUSD") mul = 10;

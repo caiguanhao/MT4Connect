@@ -169,6 +169,64 @@ namespace MT4Connect
             {
                 return Response.AsJson(new Dictionary<string, List<MT4Account>> { { "accounts", Current.Accounts.AsMT4Accounts } });
             };
+
+            Post["/accounts"] = _ =>
+            {
+                try
+                {
+                    var account = this.Bind<NewAccount>();
+                    var demoAccount = TradingAPI.MT4Server.QuoteClient.GetDemo(
+                        host: account.Host,
+                        port: account.Port,
+                        leverage: account.Leverage,
+                        balance: account.Balance,
+                        name: account.Name,
+                        accountType: account.AccountType,
+                        country: account.Country,
+                        city: account.City,
+                        state: account.State,
+                        zip: account.Zip,
+                        address: account.Address,
+                        phone: account.Phone,
+                        email: account.Email,
+                        terminalCompany: account.TerminalCompany
+                    );
+                    var ret = new Dictionary<string, Dictionary<string, object>> {
+                        {
+                            "account",
+                            new Dictionary<string, object>
+                            {
+                                {  "login", demoAccount.User },
+                                {  "password", demoAccount.Password },
+                                {  "investor", demoAccount.Investor },
+                            }
+                        }
+                    };
+                    return Response.AsJson(ret);
+                }
+                catch (Exception ex)
+                {
+                    return Response.AsJson(new Dictionary<string, string> { { "message", ex.Message } }, HttpStatusCode.Unauthorized);
+                }
+            };
+        }
+
+        public class NewAccount
+        {
+            public string Host { get; set; }
+            public int Port { get; set; }
+            public int Leverage { get; set; }
+            public double Balance { get; set; }
+            public string Name { get; set; }
+            public string AccountType { get; set; }
+            public string Country { get; set; }
+            public string City { get; set; }
+            public string State { get; set; }
+            public string Zip { get; set; }
+            public string Address { get; set; }
+            public string Phone { get; set; }
+            public string Email { get; set; }
+            public string TerminalCompany { get; set; }
         }
     }
 }
