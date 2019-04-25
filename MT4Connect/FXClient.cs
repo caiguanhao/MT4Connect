@@ -397,7 +397,7 @@ namespace MT4Connect
             {
                 targetStopLoss = (Math.Floor(currentPips / Constants.MSLOtherLevelSLGap) - 1) * Constants.MSLOtherLevelSLGap; // should always be positive
             }
-            if (targetStopLoss <= currentStopLoss)
+            if (targetStopLoss - currentStopLoss < 0.1)
             {
                 return;
             }
@@ -414,11 +414,11 @@ namespace MT4Connect
             var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, o.OpenPrice, sl, o.TakeProfit, new DateTime()));
             if (task.Wait(Constants.CommandTimeout))
             {
-                Logger.Info("{0} moved stop loss of {1} from {2} to {3}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
+                Logger.Info("{0} moved stop loss of {1} from {2:G} to {3:G}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
             }
             else
             {
-                Logger.Info("{0} timed out moving stop loss of order #{1} from {2} to {3}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
+                Logger.Info("{0} timed out moving stop loss of order #{1} from {2:G} to {3:G}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
             }
         }
 
