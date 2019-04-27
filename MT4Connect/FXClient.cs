@@ -101,10 +101,13 @@ namespace MT4Connect
                     if (MoveStopLoss) features += ", MoveStopLoss enabled";
                     if (AddToLosingPosition) features += ", AddToLosingPosition enabled";
                     Logger.Info("Connected to {0}{1}", Client.User, features);
+
+                    // init
                     UpdateAccount();
                     UpdateCurrentOrders();
                     InsertHistoryOrders();
 
+                    // update orders
                     if (ModifyTimer != null)
                     {
                         ModifyTimer.Stop();
@@ -321,6 +324,12 @@ namespace MT4Connect
             Redis.Db.KeyDelete(String.Format("forex:order#{0:D}", order.Ticket));
             Redis.Db.StringSet(String.Format("forex:deleteorder#{0:D}", order.Ticket), Client.User, Constants.KeyTimeout);
             Redis.Db.SetRemove(String.Format("forex:account#{0:D}#orders", Client.User), order.Ticket);
+
+            // if there is no order left after deletion, make prevEquity to -1 to force UpdateAccount()
+            if (Client.GetOpenedOrders().Length == 0)
+            {
+                prevEquity = -1;
+            }
         }
 
         private double prevEquity;

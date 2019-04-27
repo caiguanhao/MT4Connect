@@ -6,7 +6,7 @@ namespace MT4Connect
 {
     public class Constants
     {
-        public static TimeSpan KeyTimeout = TimeSpan.FromSeconds(2);
+        public static TimeSpan KeyTimeout = TimeSpan.FromSeconds(3);
         public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(2);
         public static string ConfigsFile = "configs.json";
 
