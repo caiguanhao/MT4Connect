@@ -70,9 +70,17 @@ namespace MT4Connect
                     {
                         Client.Connect();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        ReconnectTimer.Start();
+                        if (ex.Message.Contains("Invalid account")) // account has changed password
+                        {
+                            Current.Accounts.Remove(Client.User);
+                            ReconnectTimer.Dispose();
+                        }
+                        else
+                        {
+                            ReconnectTimer.Start();
+                        }
                     }
                 };
                 ReconnectTimer.Start();
@@ -335,7 +343,7 @@ namespace MT4Connect
         private double prevEquity;
         private readonly object l1 = new object();
 
-        private void UpdateAccount()
+        public void UpdateAccount()
         {
             lock (l1)
             {
@@ -398,23 +406,26 @@ namespace MT4Connect
                 return;
             }
             var sl = o.StopLoss;
+            var tp = o.TakeProfit;
             if (o.Type == TradingAPI.MT4Server.Op.Buy)
             {
                 sl = o.OpenPrice + targetStopLoss / mul; // should be greater than open price
+                tp = sl + Constants.MSLTakeProfit / mul;
             }
             else if (o.Type == TradingAPI.MT4Server.Op.Sell)
             {
                 sl = o.OpenPrice - targetStopLoss / mul; // should be less than open price
+                tp = sl - Constants.MSLTakeProfit / mul;
             }
             var oc = new TradingAPI.MT4Server.OrderClient(Client);
-            var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, o.OpenPrice, sl, o.TakeProfit, new DateTime()));
+            var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, o.OpenPrice, sl, tp, new DateTime()));
             if (task.Wait(Constants.CommandTimeout))
             {
-                Logger.Info("{0} moved stop loss of {1} from {2:G} to {3:G}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
+                Logger.Info("{0} moved stop loss of {1} from {2:0.#} to {3:0.#}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
             }
             else
             {
-                Logger.Info("{0} timed out moving stop loss of order #{1} from {2:G} to {3:G}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
+                Logger.Info("{0} timed out moving stop loss of order #{1} from {2:0.#} to {3:0.#}", Client.User, o.Ticket, currentStopLoss, targetStopLoss);
             }
         }
 

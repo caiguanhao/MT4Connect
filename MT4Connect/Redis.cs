@@ -41,7 +41,10 @@ namespace MT4Connect
                     {
                         var jsonKey = String.Format("forex:accountjson#{0:D}", account.Key);
                         var setKey = String.Format("forex:account#{0:D}#orders", account.Key);
-                        Redis.Db.KeyExpire(jsonKey, Constants.KeyTimeout);
+                        if (!Redis.Db.KeyExpire(jsonKey, Constants.KeyTimeout))
+                        {
+                            account.Value.UpdateAccount();
+                        }
                         Redis.Db.KeyExpire(setKey, Constants.KeyTimeout);
                         var items = Redis.Db.SetMembers(setKey);
                         for (var i = 0; i < items.Length; i++)

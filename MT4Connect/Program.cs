@@ -7,13 +7,18 @@ namespace MT4Connect
     public class Constants
     {
         public static TimeSpan KeyTimeout = TimeSpan.FromSeconds(3);
-        public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(2);
+        public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(3);
+        public static TimeSpan LoginTimeout = TimeSpan.FromSeconds(8);
+
+        public static int BatchLoginConcurrency = 10;
+
         public static string ConfigsFile = "configs.json";
 
         public static double MSLMinPips = 10;
         public static double MSLFirstLevelPips = MSLMinPips * 2;
         public static double MSLFirstLevelSL = MSLMinPips / 2;
         public static double MSLOtherLevelSLGap = MSLMinPips;
+        public static double MSLTakeProfit = 50;
 
         public static double LPPipsGap = 20;
     }

@@ -115,6 +115,22 @@ namespace MT4Connect
                 return Response.AsJson(new Dictionary<string, Server[]> { { "servers", servers } });
             };
 
+            Post["/batch-login"] = _ => {
+                var accounts = this.Bind<List<Account>>();
+                Task.Factory.StartNew(() =>
+                {
+                    var options = new ParallelOptions() { MaxDegreeOfParallelism = Constants.BatchLoginConcurrency };
+                    Parallel.ForEach(accounts, options, account =>
+                    {
+                        if (!Current.Accounts.ContainsKey(account.Login))
+                        {
+                            Login(account);
+                        }
+                    });
+                });
+                return Response.AsJson(new Dictionary<string, string> { { "message", "ok" } });
+            };
+
             Post["/login"] = _ =>
             {
                 try
@@ -122,22 +138,20 @@ namespace MT4Connect
                     var account = this.Bind<Account>();
                     if (Current.Accounts.ContainsKey(account.Login))
                     {
-                        var c = Current.Accounts[account.Login];
-                        return Response.AsJson(new Dictionary<string, object> { { "message", "already added" }, { "account", c.AsMT4Account() } }, HttpStatusCode.BadRequest);
+                        var cli = new TradingAPI.MT4Server.QuoteClient(account.Login, account.Password, account.Host, account.Port);
+                        var task = Task.Run(() => cli.Connect());
+                        if (task.Wait(Constants.LoginTimeout))
+                        {
+                            cli.Disconnect();
+                            return Response.AsJson(new Dictionary<string, Dictionary<string, bool>> {
+                                { "account", new Dictionary<string, bool> { { "master", cli.AccountMode == 0 } } } });
+                        }
+                        else
+                        {
+                            throw new Exception("timed out");
+                        }
                     }
-                    Logger.Info("Connecting to {0}...", account.Login);
-                    var client = new FXClient(account.Login, account.Password, account.ServerName, account.Host, account.Port);
-                    client.AddToLosingPosition = account.AddToLosingPosition;
-                    client.MoveStopLoss = account.MoveStopLoss;
-                    client.Connect();
-                    if (client.IsMaster())
-                    {
-                        Current.Accounts.Add(account.Login, client);
-                    }
-                    else
-                    {
-                        client.Disconnect();
-                    }
+                    var client = Login(account);
                     return Response.AsJson(new Dictionary<string, MT4Account> { { "account", client.AsMT4Account() } });
                 }
                 catch (Exception ex)
@@ -145,6 +159,24 @@ namespace MT4Connect
                     return Response.AsJson(new Dictionary<string, string> { { "message", ex.Message } }, HttpStatusCode.Unauthorized);
                 }
             };
+
+            FXClient Login(Account account)
+            {
+                Logger.Info("Connecting to {0}...", account.Login);
+                var client = new FXClient(account.Login, account.Password, account.ServerName, account.Host, account.Port);
+                client.AddToLosingPosition = account.AddToLosingPosition;
+                client.MoveStopLoss = account.MoveStopLoss;
+                client.Connect();
+                if (client.IsMaster())
+                {
+                    Current.Accounts.Add(account.Login, client);
+                }
+                else
+                {
+                    client.Disconnect();
+                }
+                return client;
+            }
 
             Post["/logout"] = _ =>
             {
