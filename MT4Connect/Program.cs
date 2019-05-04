@@ -1,5 +1,6 @@
 ﻿using Nancy.Hosting.Self;
 using System;
+using System.IO;
 using System.Threading;
 
 namespace MT4Connect
@@ -7,7 +8,7 @@ namespace MT4Connect
     public class Constants
     {
         public static TimeSpan KeyTimeout = TimeSpan.FromSeconds(3);
-        public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(3);
+        public static TimeSpan CommandTimeout = TimeSpan.FromSeconds(5);
         public static TimeSpan LoginTimeout = TimeSpan.FromSeconds(8);
 
         public static int BatchLoginConcurrency = 10;
@@ -21,18 +22,35 @@ namespace MT4Connect
         public static double MSLTakeProfit = 50;
 
         public static double LPPipsGap = 20;
+        public static int LPResumeTimeout = 20000;
     }
 
     public class Logger
     {
+        private static readonly object padlock = new object();
+
         public static void Info(string arg0)
         {
-            Console.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
+            lock (padlock)
+            {
+                using (StreamWriter w = File.AppendText("log.txt"))
+                {
+                    w.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
+                    Console.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
+                }
+            }
         }
 
         public static void Info(string format, params object[] arg)
         {
-            Console.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
+            lock (padlock)
+            {
+                using (StreamWriter w = File.AppendText("log.txt"))
+                {
+                    w.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
+                    Console.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
+                }
+            }
         }
     }
 

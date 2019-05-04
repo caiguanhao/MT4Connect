@@ -52,6 +52,7 @@ namespace MT4Connect
         private string ServerName { get; set; }
         private System.Timers.Timer ReconnectTimer;
         private System.Timers.Timer ModifyTimer;
+        private System.Timers.Timer ResumeLPTimer;
 
         public FXClient(uint login, string password, string serverName, string host, int port)
         {
@@ -89,6 +90,11 @@ namespace MT4Connect
                     ModifyTimer.Stop();
                     ModifyTimer.Dispose();
                 }
+                if (ResumeLPTimer != null)
+                {
+                    ResumeLPTimer.Stop();
+                    ResumeLPTimer.Dispose();
+                }
             };
             Client.OnConnect += (_, e) =>
             {
@@ -111,6 +117,7 @@ namespace MT4Connect
                     Logger.Info("Connected to {0}{1}", Client.User, features);
 
                     // init
+                    Redis.Db.StringSet(String.Format("forex:live#{0:D}", Client.User), "", Constants.KeyTimeout);
                     UpdateAccount();
                     UpdateCurrentOrders();
                     InsertHistoryOrders();
@@ -183,7 +190,6 @@ namespace MT4Connect
         public void Disconnect()
         {
             Client.Disconnect();
-            var jsonKey = String.Format("forex:accountjson#{0:D}", Client.User);
             var setKey = String.Format("forex:account#{0:D}#orders", Client.User);
             var items = Redis.Db.SetMembers(setKey);
             for (var i = 0; i < items.Length; i++)
@@ -191,7 +197,9 @@ namespace MT4Connect
                 Redis.Db.KeyDelete(String.Format("forex:order#{0:D}", items[i]));
             }
             Redis.Db.KeyDelete(setKey);
-            Redis.Db.KeyDelete(jsonKey);
+            Redis.Db.KeyDelete(String.Format("forex:accountjson#{0:D}", Client.User));
+            Redis.Db.KeyDelete(String.Format("forex:account#{0:D}", Client.User));
+            Redis.Db.KeyDelete(String.Format("forex:live#{0:D}", Client.User));
         }
 
         public MT4Account AsMT4Account()
@@ -343,7 +351,7 @@ namespace MT4Connect
         private double prevEquity;
         private readonly object l1 = new object();
 
-        public void UpdateAccount()
+        private void UpdateAccount()
         {
             lock (l1)
             {
@@ -354,7 +362,7 @@ namespace MT4Connect
                 Redis.Db.StringSet(key, value);
                 var jsonKey = String.Format("forex:accountjson#{0:D}", Client.User);
                 var json = new Nancy.Json.JavaScriptSerializer().Serialize(this.AsMT4Account());
-                Redis.Db.StringSet(jsonKey, json, Constants.KeyTimeout);
+                Redis.Db.StringSet(jsonKey, json);
             }
         }
 
@@ -471,6 +479,19 @@ namespace MT4Connect
                 Logger.Info("{0} timed out adding order", Client.User);
                 AddToLosingPosition = false;
                 Logger.Info("{0} temporarily disabled AddToLosingPosition", Client.User);
+                if (ResumeLPTimer != null)
+                {
+                    ResumeLPTimer.Stop();
+                    ResumeLPTimer.Dispose();
+                }
+                ResumeLPTimer = new System.Timers.Timer(Constants.LPResumeTimeout);
+                ResumeLPTimer.Elapsed += (__, ee) =>
+                {
+                    ResumeLPTimer.Stop();
+                    AddToLosingPosition = true;
+                    Logger.Info("{0} enabled AddToLosingPosition again", Client.User);
+                };
+                ResumeLPTimer.Start();
             }
         }
 

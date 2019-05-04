@@ -39,17 +39,16 @@ namespace MT4Connect
                 {
                     foreach (KeyValuePair<uint, FXClient> account in Current.Accounts)
                     {
-                        var jsonKey = String.Format("forex:accountjson#{0:D}", account.Key);
                         var setKey = String.Format("forex:account#{0:D}#orders", account.Key);
-                        if (!Redis.Db.KeyExpire(jsonKey, Constants.KeyTimeout))
-                        {
-                            account.Value.UpdateAccount();
-                        }
                         Redis.Db.KeyExpire(setKey, Constants.KeyTimeout);
                         var items = Redis.Db.SetMembers(setKey);
                         for (var i = 0; i < items.Length; i++)
                         {
                             Redis.Db.KeyExpire(String.Format("forex:order#{0:D}", items[i]), Constants.KeyTimeout);
+                        }
+                        if (account.Value.Client.Connected)
+                        {
+                            Redis.Db.StringSet(String.Format("forex:live#{0:D}", account.Key), "", Constants.KeyTimeout);
                         }
                     }
                 };
