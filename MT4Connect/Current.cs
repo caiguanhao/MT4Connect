@@ -6,6 +6,7 @@ namespace MT4Connect
     {
         public string Listen { get; set; }
         public string Postgres { get; set; }
+        public string FollowsPostgres { get; set; }
         public string Redis { get; set; }
         public int RedisDatabase { get; set; }
         public string InfluxAddress { get; set; }
@@ -50,6 +51,7 @@ namespace MT4Connect
                             {
                                 Listen = "http://localhost:1234",
                                 Postgres = "Host=127.0.0.1; Username=postgres; Password=; Database=forex_mtdata",
+                                FollowsPostgres = "Host=127.0.0.1; Username=postgres; Password=; Database=forex_development",
                                 Redis = "127.0.0.1, abortConnect = false",
                                 RedisDatabase = 15,
                                 InfluxAddress = "http://127.0.0.1:8086",

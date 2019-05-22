@@ -23,6 +23,7 @@ namespace MT4Connect
             set => _symbol = value.ToUpper();
         }
         public string OrderType { get; set; }
+        public TradingAPI.MT4Server.Op OrderTypeRaw { get; set; }
         public double Price { get; set; }
         public double Volume { get; set; }
         public double StopLoss { get; set; }
@@ -32,6 +33,10 @@ namespace MT4Connect
 
         public void Process()
         {
+            if (OrderType != null && OrderType != "")
+            {
+                OrderTypeRaw = TypeToOp(OrderType);
+            }
             try
             {
                 if (Action == "Open")
@@ -46,14 +51,57 @@ namespace MT4Connect
                 {
                     Close();
                 }
+                else if (Action == "OpenAsync")
+                {
+                    OpenAsync();
+                }
+                else if (Action == "ModifyAsync")
+                {
+                    ModifyAsync();
+                }
+                else if (Action == "CloseAsync")
+                {
+                    CloseAsync();
+                }
                 else
                 {
                     throw new Exception("unknown action");
                 }
             }
+            catch (AggregateException ex)
+            {
+                foreach (var e in ex.InnerExceptions)
+                {
+                    Logger.Info("{0} {1} Error: {2}", Login, Action, e.Message);
+                }
+            }
             catch (Exception ex)
             {
+                Logger.Info("{0} {1} Error: {2}", Login, Action, ex.Message);
                 Report(ex.Message);
+            }
+        }
+
+        private void CloseAsync()
+        {
+            var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
+            var opened = TheQuoteClient.GetOpenedOrders();
+            for (var i = 0; i < opened.Length; i++)
+            {
+                var o = opened[i];
+                if (Ticket > 0 && Ticket != o.Ticket) continue;
+                if (Symbol != "" && Symbol != o.Symbol) continue;
+                if (OrderType != "" && OrderTypeRaw != o.Type) continue;
+                if (Comment != "" && Comment != o.Comment) continue;
+                if (Volume > 0 && Volume != o.Lots) continue;
+                if (o.Type == TradingAPI.MT4Server.Op.Buy || o.Type == TradingAPI.MT4Server.Op.Sell)
+                {
+                    oc.OrderCloseAsync(o.Symbol, o.Ticket, o.Lots, o.ClosePrice, 5);
+                }
+                else
+                {
+                    oc.OrderDeleteAsync(o.Ticket, o.Type, o.Symbol, o.Lots, o.ClosePrice);
+                }
             }
         }
 
@@ -67,7 +115,8 @@ namespace MT4Connect
                 var o = opened[i];
                 if (Ticket > 0 && Ticket != o.Ticket) continue;
                 if (Symbol != "" && Symbol != o.Symbol) continue;
-                if (OrderType != "" && TypeToOp(OrderType) != o.Type) continue;
+                if (OrderType != "" && OrderTypeRaw != o.Type) continue;
+                if (Comment != "" && Comment != o.Comment) continue;
                 if (Volume > 0 && Volume != o.Lots) continue;
                 int tried = 0;
                 while (true)
@@ -114,6 +163,30 @@ namespace MT4Connect
             Logger.Info("{0} closed {1} orders (ID#{2})", Login, closed, Id);
         }
 
+        private void ModifyAsync()
+        {
+            var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
+            var opened = TheQuoteClient.GetOpenedOrders();
+            for (var i = 0; i < opened.Length; i++)
+            {
+                var o = opened[i];
+                if (Ticket > 0 && Ticket != o.Ticket) continue;
+                if (Symbol != "" && Symbol != o.Symbol) continue;
+                if (OrderType != "" && OrderTypeRaw != o.Type) continue;
+                if (Comment != "" && Comment != o.Comment) continue;
+                if (Volume > 0 && Volume != o.Lots) continue;
+                if (o.Type == TradingAPI.MT4Server.Op.Buy || o.Type == TradingAPI.MT4Server.Op.Sell)
+                {
+                    Price = o.OpenPrice;
+                }
+                var pst = GetPST(getQuote: false, symbol: o.Symbol, order_type: o.Type);
+                if (pst.Item1 != o.OpenPrice || pst.Item2 != o.StopLoss || pst.Item3 != o.TakeProfit)
+                {
+                    oc.OrderModifyAsync(o.Type, o.Ticket, pst.Item1, pst.Item2, pst.Item3, new DateTime());
+                }
+            }
+        }
+
         private void Modify()
         {
             var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
@@ -124,7 +197,8 @@ namespace MT4Connect
                 var o = opened[i];
                 if (Ticket > 0 && Ticket != o.Ticket) continue;
                 if (Symbol != "" && Symbol != o.Symbol) continue;
-                if (OrderType != "" && TypeToOp(OrderType) != o.Type) continue;
+                if (OrderType != "" && OrderTypeRaw != o.Type) continue;
+                if (Comment != "" && Comment != o.Comment) continue;
                 if (Volume > 0 && Volume != o.Lots) continue;
                 if (o.Type == TradingAPI.MT4Server.Op.Buy || o.Type == TradingAPI.MT4Server.Op.Sell)
                 {
@@ -135,7 +209,7 @@ namespace MT4Connect
                 {
                     try
                     {
-                        var pst = GetPST(getQuote: false, symbol: o.Symbol, order_type: OpToType(o.Type));
+                        var pst = GetPST(getQuote: false, symbol: o.Symbol, order_type: o.Type);
                         if (pst.Item1 != o.OpenPrice || pst.Item2 != o.StopLoss || pst.Item3 != o.TakeProfit)
                         {
                             var task = Task.Run(() => oc.OrderModify(o.Type, o.Ticket, pst.Item1, pst.Item2, pst.Item3, new DateTime()));
@@ -171,18 +245,24 @@ namespace MT4Connect
             Logger.Info("{0} modified {1} orders (ID#{2})", Login, modified, Id);
         }
 
+        private void OpenAsync()
+        {
+            var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
+            var pst = GetPST(getQuote: true, symbol: Symbol, order_type: OrderTypeRaw);
+            oc.OrderSendAsync(Symbol, OrderTypeRaw, Volume, pst.Item1, 5, pst.Item2, pst.Item3, Comment, 0, new DateTime());
+        }
+
         private void Open()
         {
             var oc = new TradingAPI.MT4Server.OrderClient(TheQuoteClient);
-            var op = TypeToOp(OrderType);
             TradingAPI.MT4Server.Order newOrder;
             int tried = 0;
             while (true)
             {
                 try
                 {
-                    var pst = GetPST(getQuote: true);
-                    var task = Task.Run(() => oc.OrderSend(Symbol, op, Volume, pst.Item1, 5, pst.Item2, pst.Item3, Comment, 0, new DateTime()));
+                    var pst = GetPST(getQuote: true, symbol: Symbol, order_type: OrderTypeRaw);
+                    var task = Task.Run(() => oc.OrderSend(Symbol, OrderTypeRaw, Volume, pst.Item1, 5, pst.Item2, pst.Item3, Comment, 0, new DateTime()));
                     if (!task.Wait(Constants.CommandTimeout)) throw new ProcessTimedOutException();
                     newOrder = task.Result;
                     break;
@@ -203,11 +283,12 @@ namespace MT4Connect
             }
             Ticket = newOrder.Ticket;
             Report();
-            Logger.Info("{0} created order #{1} ({2},{3},{4}) (ID#{5})", Login, Ticket, Symbol, OrderType, Volume, Id);
+            Logger.Info("{0} created order #{1} ({2},{3},{4}) (ID#{5})", Login, Ticket, Symbol, OpToType(OrderTypeRaw), Volume, Id);
         }
 
         private void Report(object error = null)
         {
+            if (Id == 0) return;
             InstructionsPostgres.UpdateStmt.Parameters["id"].Value = Id;
             if (Ticket > 0)
             {
@@ -222,10 +303,8 @@ namespace MT4Connect
             InstructionsPostgres.UpdateStmt.ExecuteNonQuery();
         }
 
-        private Tuple<double, double, double> GetPST(bool getQuote = true, string symbol = null, string order_type = null)
+        private Tuple<double, double, double> GetPST(bool getQuote, string symbol, TradingAPI.MT4Server.Op order_type)
         {
-            if (symbol == null) symbol = Symbol;
-            if (order_type == null) order_type = OrderType;
             var pips = 0.0001;
             if (symbol.Contains("JPY") || symbol == "XAGUSD") pips = 0.01;
             if (symbol == "XAUUSD") pips = 0.1;
@@ -241,25 +320,25 @@ namespace MT4Connect
             double take_profit = TakeProfit;
             switch (order_type)
             {
-                case "BUY":
+                case TradingAPI.MT4Server.Op.Buy:
                     if (getQuote)
                     {
                         price = TheQuoteClient.GetQuote(symbol).Ask;
                     }
-                    goto case "BUYLIMIT";
-                case "BUYLIMIT":
-                case "BUYSTOP":
+                    goto case TradingAPI.MT4Server.Op.BuyLimit;
+                case TradingAPI.MT4Server.Op.BuyLimit:
+                case TradingAPI.MT4Server.Op.BuyStop:
                     if (stop_loss != 0) stop_loss = price - stop_loss * pips;
                     if (take_profit != 0) take_profit = price + take_profit * pips;
                     break;
-                case "SELL":
+                case TradingAPI.MT4Server.Op.Sell:
                     if (getQuote)
                     {
                         price = TheQuoteClient.GetQuote(symbol).Bid;
                     }
-                    goto case "SELLLIMIT";
-                case "SELLLIMIT":
-                case "SELLSTOP":
+                    goto case TradingAPI.MT4Server.Op.SellLimit;
+                case TradingAPI.MT4Server.Op.SellLimit:
+                case TradingAPI.MT4Server.Op.SellStop:
                     if (stop_loss != 0) stop_loss = price + stop_loss * pips;
                     if (take_profit != 0) take_profit = price - take_profit * pips;
                     break;
@@ -284,7 +363,7 @@ namespace MT4Connect
                 case "SELLSTOP":
                     return TradingAPI.MT4Server.Op.SellStop;
                 default:
-                    throw new Exception("unknown order type");
+                    throw new Exception("unknown order type (TypeToOp)");
             }
         }
 
@@ -305,7 +384,7 @@ namespace MT4Connect
                 case TradingAPI.MT4Server.Op.SellStop:
                     return "SELLSTOP";
                 default:
-                    throw new Exception("unknown order type");
+                    throw new Exception("unknown order type (OpToType)");
             }
         }
 

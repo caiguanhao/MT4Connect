@@ -54,6 +54,8 @@ namespace MT4Connect
         private System.Timers.Timer ModifyTimer;
         private System.Timers.Timer ResumeLPTimer;
 
+        private static HashidsNet.Hashids CopyHash = new HashidsNet.Hashids("LingRuiFX::Copy");
+
         public FXClient(uint login, string password, string serverName, string host, int port)
         {
             ServerName = serverName;
@@ -136,9 +138,16 @@ namespace MT4Connect
                         {
                             DynamicallyUpdateOrders();
                         }
+                        catch (AggregateException ex)
+                        {
+                            foreach (var err in ex.InnerExceptions)
+                            {
+                                Logger.Info("{0} Error: {1}", Client.User, err.Message);
+                            }
+                        }
                         catch (Exception ex)
                         {
-                            Logger.Info("{0} Error {1}", Client.User, ex.Message);
+                            Logger.Info("{0} Error: {1}", Client.User, ex.Message);
                         }
                         finally
                         {
@@ -151,22 +160,36 @@ namespace MT4Connect
             Client.OnOrderUpdate += (_, e) =>
             {
                 if (!IsMaster()) return;
-                Logger.Info("{0} updating order #{1}", Client.User, e.Order.Ticket);
-                UpdateAccount();
-                switch (e.Action)
+                try
                 {
-                    case TradingAPI.MT4Server.UpdateAction.PendingClose:
-                    case TradingAPI.MT4Server.UpdateAction.PositionClose:
-                        DeleteCurrentOrder(e.Order);
-                        goto case TradingAPI.MT4Server.UpdateAction.Balance;
-                    case TradingAPI.MT4Server.UpdateAction.Balance:
-                    case TradingAPI.MT4Server.UpdateAction.Credit:
-                        var inserted = InsertHistoryOrder(e.Order);
-                        Logger.Info("{0} inserted {1} history orders", Client.User, inserted);
-                        break;
-                    default:
-                        UpdateCurrentOrder(e.Order.Symbol);
-                        break;
+                    UpdateAccount();
+                    switch (e.Action)
+                    {
+                        case TradingAPI.MT4Server.UpdateAction.PendingClose:
+                        case TradingAPI.MT4Server.UpdateAction.PositionClose:
+                            DeleteCurrentOrder(e.Order);
+                            goto case TradingAPI.MT4Server.UpdateAction.Balance;
+                        case TradingAPI.MT4Server.UpdateAction.Balance:
+                        case TradingAPI.MT4Server.UpdateAction.Credit:
+                            var inserted = InsertHistoryOrder(e.Order);
+                            Logger.Info("{0} inserted {1} history orders", Client.User, inserted);
+                            break;
+                        default:
+                            UpdateCurrentOrder(e.Order.Symbol);
+                            break;
+                    }
+                }
+                catch (Exception err)
+                {
+                    Logger.Info("{0} Error on updating order #{1}: {2}", Client.User, e.Order.Ticket, err.Message);
+                }
+                try
+                {
+                    CopyOrders(e.Action, e.Order);
+                }
+                catch (Exception err)
+                {
+                    Logger.Info("{0} Error on copying order #{1}: {2}", Client.User, e.Order.Ticket, err.Message);
                 }
             };
             Client.OnQuote += (_, e) =>
@@ -552,6 +575,139 @@ namespace MT4Connect
         private DateTime ToUTC(DateTime dt)
         {
             return dt.AddHours(IsSummer(dt) ? -3 : -2);
+        }
+
+        private static readonly object lock1 = new object();
+
+        private const string CopyPrefix = "LingRuiFX-CP-";
+
+        private void CopyOrders(TradingAPI.MT4Server.UpdateAction action, TradingAPI.MT4Server.Order o)
+        {
+            switch (action)
+            {
+                case TradingAPI.MT4Server.UpdateAction.Balance:
+                case TradingAPI.MT4Server.UpdateAction.Credit:
+                case TradingAPI.MT4Server.UpdateAction.PendingFill:
+                    return;
+            }
+
+            var follows = new Dictionary<uint, Tuple<double, double>>() { };
+            lock (lock1)
+            {
+                FollowsPostgres.QueryStmt.Parameters["followee"].Value = (long)Client.User;
+                using (var reader = FollowsPostgres.QueryStmt.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var follower = Convert.ToUInt32(reader.GetInt32(0));
+                        if (!Current.Accounts.ContainsKey(follower))
+                        {
+                            continue;
+                        }
+                        var factor = reader.GetDouble(1);
+                        var max = reader.GetDouble(2);
+                        follows.Add(follower, Tuple.Create(factor, max));
+                    }
+                }
+            }
+            if (follows.Count == 0) return;
+
+            var mul = 10000;
+            if (o.Symbol.Contains("JPY") || o.Symbol == "XAGUSD") mul = 100;
+            if (o.Symbol == "XAUUSD") mul = 10;
+            var sl = 0.0;
+            var tp = 0.0;
+            switch (o.Type)
+            {
+                case TradingAPI.MT4Server.Op.Buy:
+                case TradingAPI.MT4Server.Op.BuyLimit:
+                case TradingAPI.MT4Server.Op.BuyStop:
+                    sl = o.StopLoss > 0 ? ((o.OpenPrice - o.StopLoss) * mul) : 0;
+                    tp = o.TakeProfit > 0 ? ((o.TakeProfit - o.OpenPrice) * mul) : 0;
+                    break;
+                case TradingAPI.MT4Server.Op.Sell:
+                case TradingAPI.MT4Server.Op.SellLimit:
+                case TradingAPI.MT4Server.Op.SellStop:
+                    sl = o.StopLoss > 0 ? ((o.StopLoss - o.OpenPrice) * mul) : 0;
+                    tp = o.TakeProfit > 0 ? ((o.OpenPrice - o.TakeProfit) * mul) : 0;
+                    break;
+            }
+            var comment = CopyPrefix + CopyHash.Encode(o.Ticket);
+
+            var orders = new List<Order>();
+            foreach (KeyValuePair<uint, Tuple<double, double>> follow in follows)
+            {
+                switch (action)
+                {
+                    case TradingAPI.MT4Server.UpdateAction.PendingOpen:
+                    case TradingAPI.MT4Server.UpdateAction.PositionOpen:
+                        var hasSameOrder = false;
+                        if (o.Comment.StartsWith(CopyPrefix))
+                        {
+                            var opened = Current.Accounts[follow.Key].Client.GetOpenedOrders();
+                            for (var i = 0; i < opened.Length; i++)
+                            {
+                                var order = opened[i];
+                                if (order.Symbol == o.Symbol && order.Type == o.Type && DateTime.UtcNow.Subtract(ToUTC(order.OpenTime)).TotalSeconds < 10)
+                                {
+                                    hasSameOrder = true;
+                                    Logger.Info("{0} prevented a possible loop order ({1}) for {2}", Client.User, order.Symbol, follow.Key);
+                                    break;
+                                }
+                            }
+                        }
+                        if (!hasSameOrder)
+                        {
+                            orders.Add(new Order()
+                            {
+                                Id = 0,
+                                Login = follow.Key,
+                                Action = "OpenAsync",
+                                Symbol = o.Symbol,
+                                OrderTypeRaw = o.Type,
+                                Volume = Math.Min(o.Lots * follow.Value.Item1, follow.Value.Item2),
+                                Price = o.OpenPrice, // this only works for pending orders
+                                StopLoss = sl,
+                                TakeProfit = tp,
+                                Comment = comment
+                            });
+                        }
+                        break;
+                    case TradingAPI.MT4Server.UpdateAction.PendingModify:
+                    case TradingAPI.MT4Server.UpdateAction.PositionModify:
+                        orders.Add(new Order()
+                        {
+                            Id = 0,
+                            Login = follow.Key,
+                            Action = "ModifyAsync",
+                            Symbol = o.Symbol,
+                            OrderTypeRaw = o.Type,
+                            Comment = comment,
+                            Price = o.OpenPrice,
+                            StopLoss = sl,
+                            TakeProfit = tp
+                        });
+                        break;
+                    case TradingAPI.MT4Server.UpdateAction.PositionClose:
+                    case TradingAPI.MT4Server.UpdateAction.PendingClose:
+                        orders.Add(new Order()
+                        {
+                            Id = 0,
+                            Login = follow.Key,
+                            Action = "CloseAsync",
+                            Symbol = o.Symbol,
+                            OrderTypeRaw = o.Type,
+                            Comment = comment
+                        });
+                        break;
+                }
+            }
+            if (orders.Count == 0) return;
+            Logger.Info("{0} running {1} copies for {2}", Client.User, orders.Count, string.Join(", ", follows.Keys));
+            orders.ForEach((order) =>
+            {
+                order.Process();
+            });
         }
     }
 }

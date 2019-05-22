@@ -195,4 +195,43 @@ namespace MT4Connect
             }
         }
     }
+
+    public sealed class FollowsPostgres
+    {
+        private static NpgsqlConnection _Conn = null;
+        private static NpgsqlCommand _QueryStmt = null;
+        private static readonly object padlock = new object();
+
+        public static NpgsqlConnection Conn
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (_Conn == null)
+                    {
+                        _Conn = new NpgsqlConnection(Current.Configs.FollowsPostgres);
+                    }
+                    return _Conn;
+                }
+            }
+        }
+
+        public static NpgsqlCommand QueryStmt
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (_QueryStmt == null)
+                    {
+                        _QueryStmt = new NpgsqlCommand("SELECT follower, volume_factor, volume_max FROM follows WHERE followee = @followee", Conn);
+                        _QueryStmt.Parameters.Add("followee", NpgsqlDbType.Bigint);
+                        _QueryStmt.Prepare();
+                    }
+                    return _QueryStmt;
+                }
+            }
+        }
+    }
 }

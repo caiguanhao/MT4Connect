@@ -35,8 +35,9 @@ namespace MT4Connect
             {
                 using (StreamWriter w = File.AppendText("log.txt"))
                 {
-                    w.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
-                    Console.WriteLine("[{0}] {1}", DateTime.Now.ToString("HH:mm:ss"), arg0);
+                    var time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                    w.WriteLine("[{0}] {1}", time, arg0);
+                    Console.WriteLine("[{0}] {1}", time, arg0);
                 }
             }
         }
@@ -47,8 +48,9 @@ namespace MT4Connect
             {
                 using (StreamWriter w = File.AppendText("log.txt"))
                 {
-                    w.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
-                    Console.WriteLine(DateTime.Now.ToString("[HH:mm:ss] ") + format, arg);
+                    var content = DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss] ") + format;
+                    w.WriteLine(content, arg);
+                    Console.WriteLine(content, arg);
                 }
             }
         }
@@ -67,9 +69,9 @@ namespace MT4Connect
             }
             Logger.Info("connected to redis");
             OrdersPostgres.Conn.Open();
-            Logger.Info("connected to orders postgres");
             InstructionsPostgres.Conn.Open();
-            Logger.Info("connected to instructions postgres");
+            FollowsPostgres.Conn.Open();
+            Logger.Info("connected to postgres");
 
             // start services
             Influx.SendMetrics();

@@ -26,12 +26,29 @@ namespace MT4Connect
             {
                 var timer = (Stopwatch)ctx.Items["timer"];
                 timer.Stop();
-                Console.WriteLine("[{0}] {1} {2} - ReqBodySize: {3} - RespStatus: {4} - Duration: {5}ms",
-                    DateTime.Now.ToString("HH:mm:ss"), ctx.Request.Method,
-                    ctx.Request.Path, ctx.Request.Body.Length,
-                    ctx.Response.StatusCode.ToString("D"), timer.ElapsedMilliseconds);
-                Console.Out.Flush();
+                Logger.Info("{0} {1} - ReqBodySize: {2} - RespStatus: {3} - Duration: {4}ms - Client: {5}",
+                    ctx.Request.Method, new Uri(ctx.Request.Url).PathAndQuery, ctx.Request.Body.Length,
+                    ctx.Response.StatusCode.ToString("D"), timer.ElapsedMilliseconds, ctx.Request.UserHostAddress);
             });
+        }
+    }
+
+    public class PageNotFoundHandler : Nancy.ErrorHandling.IStatusCodeHandler
+    {
+        public PageNotFoundHandler() : base()
+        {
+        }
+
+        public bool HandlesStatusCode(HttpStatusCode statusCode, NancyContext context)
+        {
+            return statusCode == HttpStatusCode.NotFound;
+        }
+
+        public void Handle(HttpStatusCode statusCode, NancyContext context)
+        {
+            var response = new Nancy.Responses.JsonResponse(new Dictionary<string, string>{ { "message", "Page Not Found" } }, new Nancy.Responses.DefaultJsonSerializer());
+            response.StatusCode = HttpStatusCode.NotFound;
+            context.Response = response;
         }
     }
 
