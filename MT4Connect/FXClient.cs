@@ -658,14 +658,22 @@ namespace MT4Connect
                         }
                         if (!hasSameOrder)
                         {
+                            var followerLogin = follow.Key;
+                            var baseFactor = 1.0;
+                            if (Current.Accounts.ContainsKey(followerLogin))
+                            {
+                                baseFactor = Current.Accounts[followerLogin].Client.AccountEquity / Client.AccountEquity;
+                            }
+                            var factor = follow.Value.Item1;
+                            var max = follow.Value.Item2;
                             orders.Add(new Order()
                             {
                                 Id = 0,
-                                Login = follow.Key,
+                                Login = followerLogin,
                                 Action = "OpenAsync",
                                 Symbol = o.Symbol,
                                 OrderTypeRaw = o.Type,
-                                Volume = Math.Min(o.Lots * follow.Value.Item1, follow.Value.Item2),
+                                Volume = Math.Max(0.01, Math.Min(o.Lots * baseFactor * factor, max)),
                                 Price = o.OpenPrice, // this only works for pending orders
                                 StopLoss = sl,
                                 TakeProfit = tp,

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -70,10 +71,13 @@ namespace MT4Connect
             }
             catch (AggregateException ex)
             {
+                var msgs = new List<string>();
                 foreach (var e in ex.InnerExceptions)
                 {
                     Logger.Info("{0} {1} Error: {2}", Login, Action, e.Message);
+                    msgs.Add(e.Message);
                 }
+                Report(String.Join(", ", msgs.ToArray()));
             }
             catch (Exception ex)
             {
